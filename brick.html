@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello Web - Accessing JavaScript from Processing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.16/processing.js"></script>
+</head>
+<body>
+
+    <script type="application/processing" data-processing-target="pjs">
+var canvasWidth = Math.min(400, window.innerWidth-15);
+void setup()
+{
+  size(canvasWidth,400, P3D);
+  background(0);
+//  fill(255);
+}
+lights();
+noStroke();
+var gameOver = false;
+var startX = 200;
+var startY = 200;
+var paddleWidth = 50;
+var paddleHeight = 10;
+var ballCount = 3;
+var Brick = function(x,y,w,h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+};
+Brick.prototype.draw = function() {
+//    rect(this.x, this.y, this.w, this.h);
+
+};
+Brick.prototype.hitBy = function(ball) {
+    if(this.x < ball.x && ball.x < this.x+this.w && this.y < ball.y && ball.y < this.y+this.h) {
+        return true;
+    } else {
+        return false;
+    }
+};
+var bricks = [];
+var makeBricks = function(rows, cols) {
+    var ypos=10;
+    var n=0;
+    for(var i=0; i<rows; i++) {
+        var xpos=canvasWidth/26.7;//15;
+        for(var j=0; j<cols; j++) {
+            bricks[n++] = new Brick(xpos,ypos,canvasWidth/9,20);
+            xpos += canvasWidth/7.4;//54;
+        }
+        ypos += 25;
+    }
+};
+makeBricks(5,7);
+
+var Paddle = function(x,y,w,h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.previousX = x;
+};
+Paddle.prototype.hit = function(ball) {
+    if(
+        this.x - this.w/2 <= ball.x && 
+        ball.x <= this.x + this.w/2 && 
+        ball.yspeed > 0 && 
+        this.y+this.h >= ball.y && ball.y >= this.y) {
+        return true;
+    }
+    return false;
+};
+Paddle.prototype.draw = function() {
+    this.previousX = this.x;
+    this.x = mouseX;
+     rect(this.x-this.w/2,this.y, this.w, this.h);
+};
+Paddle.prototype.print = function() {
+    println("paddle x:"+this.x+",y:"+this.y+",w"+this.w+",h:"+this.h+",previousX:"+this.previousX);
+};
+
+var paddle = new Paddle(200,350,paddleWidth,paddleHeight);
+var Ball = function(x,y,d,xspeed,yspeed) {
+    this.x = x;
+    this.y = y;
+    this.d = d;
+    this.xspeed = xspeed;
+    this.yspeed = yspeed;
+    this.ballCount = 3;
+};
+Ball.prototype.draw = function() {
+    // update the ball position and render it
+    //this.updatePosition();
+    pushMatrix();
+    translate(100,100,-100);
+    //translate(this.x, this.y, -10);
+    sphere(this.d);
+    popMatrix();
+//    ellipse(this.x,this.y,this.d,this.d);
+};
+Ball.prototype.updatePosition = function() {
+    this.x += this.xspeed;
+    this.y += this.yspeed;
+};
+Ball.prototype.print = function() {
+    print("Ball x:"+this.x+",y:"+this.y+",d:"+this.d);
+};
+Ball.prototype.wallBounce = function() {
+    if(this.x > canvasWidth - this.d/2 || this.x < this.d/2) {
+        this.xspeed *= -1;
+        //playSound(getSound("rpg/hit-thud"));
+    }
+    if(this.y < this.d/2) {
+        this.yspeed *= -1;
+        //playSound(getSound("rpg/hit-thud"));
+    }
+    if(this.y > 400) {
+        this.ballCount--;
+        this.x = startX;
+        this.y = startY;
+        this.yspeed = 3;
+        this.xspeed = random(-3,3);
+        if(this.ballCount <= 0) {
+          //  playSound(getSound("rpg/giant-no"));
+            gameOver = true;
+        }
+    } 
+
+};
+var ball = new Ball(
+    startX,
+    startY,
+    20,
+    random(-3,3),
+    3);
+
+draw = function() {
+    lights();
+    if(gameOver) {return;}
+ 
+    // blue background
+//    background(29, 40, 115);
+    // draw the bricks
+    fill(255, 0, 0);
+    var liveBrick = false;
+    // draw each brick and check for ball collision
+    for(var i=0; i<bricks.length; i++) {
+        var b = bricks[i];
+        if(b !== null) {
+            b.draw();
+            liveBrick = true; // i have at least one brick remaining
+            if(b.hitBy(ball)) {
+               // playSound(getSound("rpg/metal-clink"));
+                bricks[i] = null;
+                ball.yspeed *= -1;
+            }
+        }
+    }
+    // if no more bricks, then they won!
+    if(liveBrick === false) {
+        //playSound(getSound("retro/whistle2"));
+        text("WINNER!",180,200);
+        gameOver = true;
+    }
+    // draw the ball
+    fill(255, 255, 255);
+    ball.draw();
+    ball.wallBounce();
+    //draw the paddle
+    fill(255, 200, 0);
+    paddle.draw();
+    
+    if(paddle.hit(ball)) {
+        var paddleMotion = paddle.x - paddle.previousX;
+        //playSound(getSound("rpg/hit-whack"));
+        ball.yspeed *= -1;
+        if(ball.xspeed >= 0) {
+            if(paddleMotion > 0) {
+                ball.xspeed++;
+            } else if(paddleMotion < 0) {
+                ball.xspeed--;
+            }
+        } else {
+            if(paddleMotion < 0) {
+                ball.xspeed--;
+            } else if(paddleMotion > 0) {
+                ball.xspeed++;
+            }
+        }
+    }    
+};
+
+</script>
+
+<canvas id="pjs"> </canvas>
+</html>
