@@ -8,13 +8,16 @@
 
     <script type="application/processing" data-processing-target="pjs">
 
-/* @pjs preload="x-wing.gif"; */
+/* @pjs preload="x-wing.gif"; 
+   @pjs preload="tie-fighter.jpg"; */
 
 PImage b;
+PImage t;
 
 void setup() {
   size(450,450);
   b = loadImage("x-wing.gif");
+  t = loadImage("tie-fighter.jpg");
 
   noLoop();
 
@@ -24,7 +27,9 @@ void setup() {
 
 void draw() {
 
-  image(b, 100, 100);
+  image(b, 200,200);
+  
+  image(t, 100,100);
 
 }
 </script>
