@@ -10,8 +10,8 @@
 
 /* @pjs preload="x-wing.gif,tie-fighter.jpg"; */
 
-PImage b;
-PImage t;
+var b;
+var t;
 
 void setup() {
   size(450,450);
@@ -26,11 +26,11 @@ var XWing = function(x, y) {
 };
 XWing.prototype.draw = function() {
     pushMatix();
-    translate(mouseX, mouseY);
+    translate(200,300);
     scale(0.5, 0.5);
     image(b, 0,0);
     popMatrix();
-    println("mouseX:"+mouseX);
+    //println("mouseX:"+mouseX);
 };
 
 var Fighter = function(x, y) {
