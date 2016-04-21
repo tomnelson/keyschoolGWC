@@ -36,7 +36,7 @@ XWing.prototype.draw = function() {
 var Fighter = function(x, y) {
     this.position = new PVector(x,y);
     this.velocity = new PVector(0,0);
-}
+};
 Fighter.prototype.draw = function() {
     pushMatix();
     translate(this.position.x, this.position.y);
