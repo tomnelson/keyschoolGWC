@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello Web - Accessing JavaScript from Processing</title>
+    <script src="processing.js"></script>
+</head>
+<body>
+
+    <script type="application/processing" data-processing-target="pjs">
+
+
+PImage b;
+
+void setup() {
+  size(400,400);
+  b = loadImage("x-wing.gif");
+
+  noLoop();
+
+}
+
+
+
+void draw() {
+
+  image(b, 100, 100);
+
+}
+</script>
+
+<canvas id="pjs"> </canvas>
+</html>
