@@ -223,6 +223,9 @@ Fish.prototype.calculateAttraction = function(m, i) {
     return force;
 };
 // noop functions:
+Fish.prototype.speedUp = function() {};
+Fish.prototype.slowDown = function() {};
+/*
 Fish.prototype.speedUp = function() {
     var dir = new PVector(this.velocity.x, this.velocity.y);
     if (dir.x === 0 && dir.y === 0) {
@@ -238,7 +241,7 @@ Fish.prototype.slowDown = function() {
     dir.mult(-0.1);
     this.applyForce(dir);
 };
-
+*/
 Fish.prototype.turnLeft = function() {
     this.velocity.rotate(-PI/90);
 };
