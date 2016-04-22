@@ -223,10 +223,29 @@ Fish.prototype.calculateAttraction = function(m, i) {
     return force;
 };
 // noop functions:
-Fish.prototype.speedUp = function() {};
-Fish.prototype.slowDown = function() {};
-//Fish.prototype.turnLeft = function() {};
-//Fish.prototype.turnRight = function() {};
+Fish.prototype.speedUp = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    if (dir.x === 0 && dir.y === 0) {
+        // kick off an initial velocity
+        dir.y = -0.1;
+    } else {
+        dir.mult(0.1);
+    }
+    this.applyForce(dir);
+};
+Fish.prototype.slowDown = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    dir.mult(-0.1);
+    this.applyForce(dir);
+};
+
+Fish.prototype.turnLeft = function() {
+    this.velocity.rotate(-PI/90);
+};
+
+Fish.prototype.turnRight = function() {
+    this.velocity.rotate(PI/90);
+};
 
 var Goldfish = function() {
     Fish.call(this);
