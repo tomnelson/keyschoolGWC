@@ -225,8 +225,8 @@ Fish.prototype.calculateAttraction = function(m, i) {
 // noop functions:
 Fish.prototype.speedUp = function() {};
 Fish.prototype.slowDown = function() {};
-Fish.prototype.turnLeft = function() {};
-Fish.prototype.turnRight = function() {};
+//Fish.prototype.turnLeft = function() {};
+//Fish.prototype.turnRight = function() {};
 
 var Goldfish = function() {
     Fish.call(this);
@@ -462,12 +462,14 @@ EcoSystem.prototype.turnLeft = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].turnLeft();
     }
+    this.leader.turnLeft();
 };
 
 EcoSystem.prototype.turnRight = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].turnRight();
     }
+    this.leader.turnRight();
 };
 
 var ecoSystem = new EcoSystem();
