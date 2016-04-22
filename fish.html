@@ -27,7 +27,7 @@
         }
 
         // use degrees rather than radians in rotate function
-        var rotateFn = processing.rotate;
+        var rotate = processing.rotate;
         processing.rotate = function (angle) {
             rotateFn(processing.radians(angle));
         };
