@@ -6,11 +6,14 @@
   <script src="buzz.min.js"></script>
 </head>
 <body>
-  <canvas id="canvas" width="800" height="800"></canvas>
+  <canvas id="canvas" width="600" height="600"></canvas>
   <script>
     var canvas = document.getElementById("canvas");
+               var width = 600;
+            var height = 600;
+
     var processing = new Processing(canvas, function(processing) {
-        processing.size(800,800);
+        processing.size(width,height);
         processing.background(0xFFF);
 
         var mouseIsPressed = false;
@@ -34,6 +37,7 @@
       //  };
 
         with (processing) {
+             
 var whack = new buzz.sound( "whack", {
     formats: [ "ogg", "mp3" ]
 });
@@ -52,10 +56,10 @@ var whistle = new buzz.sound( "whistle", {
 noStroke();
 var gameOn = false;
 colorMode(HSB, 255, 100, 100);
-var startX = 200;
-var startY = 200;
-var paddleWidth = 50;
-var paddleHeight = 10;
+var startX = width/2;
+var startY = height/2;
+var paddleWidth = 0.125*width;
+var paddleHeight = 0.025*height;
 var ballCount = 3;
 var Brick = function(x,y,w,h) {
     this.position = new PVector(x, y);
@@ -126,15 +130,15 @@ Brick.prototype.wallCheck = function() {
 
 var bricks = [];
 var makeBricks = function(rows, cols) {
-    var ypos=10;
+    var ypos=(0.025*height);
     var n=0;
     for(var i=0; i<rows; i++) {
-        var xpos=15;
+        var xpos=(0.0375*width);
         for(var j=0; j<cols; j++) {
-            bricks[n++] = new Brick(xpos,ypos,45,20);
-            xpos += 54;
+            bricks[n++] = new Brick(xpos,ypos,0.1125*width,0.05*height);
+            xpos += (0.135*width);
         }
-        ypos += 25;
+        ypos += (0.0625*height);
     }
 };
 makeBricks(5,7);
@@ -202,7 +206,7 @@ Paddle.prototype.print = function() {
     println("paddle x:"+this.x+",y:"+this.y+",w"+this.w+",h:"+this.h+",previousX:"+this.previousX);
 };
 
-var paddle = new Paddle(200,350,paddleWidth,paddleHeight);
+var paddle = new Paddle(width/2,0.875*height,paddleWidth,paddleHeight);
 var Ball = function(x,y,d,xspeed,yspeed) {
     this.position = new PVector(x, y);
     this.velocity = new PVector(xspeed,yspeed);
@@ -229,7 +233,7 @@ Ball.prototype.print = function() {
     print("Ball x:"+this.x+",y:"+this.y+",d:"+this.d);
 };
 Ball.prototype.wallBounce = function() {
-    if(this.position.x >400 - this.d/2 || this.position.x < this.d/2) {
+    if(this.position.x >width - this.d/2 || this.position.x < this.d/2) {
         this.velocity.x *= -1;
         try {
     //        playSound(getSound("rpg/hit-thud"));
@@ -243,7 +247,7 @@ Ball.prototype.wallBounce = function() {
  thud.play();
         } catch (err) {}
     }
-    if(this.position.y > 400) {
+    if(this.position.y > height) {
         this.ballCount--;
         this.position = new PVector(startX, startY);
         this.velocity = new PVector(random(-3,3), 3);
@@ -260,7 +264,7 @@ Ball.prototype.wallBounce = function() {
 var ball = new Ball(
     startX,
     startY,
-    20,
+    0.05*width,
     random(-3,3),
     3);
 mouseClicked = function() {
@@ -268,7 +272,7 @@ mouseClicked = function() {
     ball = new Ball(
         startX,
         startY,
-        20,
+        0.05*width,
         random(-3,3),
         3);
     makeBricks(5,7);
@@ -304,7 +308,7 @@ draw = function() {
             } catch (err) {}
             gameOn = false;
         }
-        text("WINNER!",180,200);
+        text("WINNER!",width/2,height/2);
     }
     // draw the ball
     ball.draw();
@@ -324,7 +328,7 @@ draw = function() {
         
     }
     if(gameOn === false) {
-        text("Click to Play",170,240);   
+        text("Click to Play",width/2-35,height/2+50);   
     }
 };
 
