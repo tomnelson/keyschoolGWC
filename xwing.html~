@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello Web - Accessing JavaScript from Processing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.16/processing.js"></script>
+</head>
+<body>
+
+    <script type="application/processing" data-processing-target="pjs">
+
+/* @pjs preload="x-wing.gif"; */
+
+PImage b;
+
+void setup() {
+  size(450,450);
+  b = loadImage("x-wing.gif");
+
+  noLoop();
+
+}
+
+
+
+void draw() {
+
+  image(b, 100, 100);
+
+}
+</script>
+
+<canvas id="pjs"> </canvas>
+
+</body>
+
+</html>

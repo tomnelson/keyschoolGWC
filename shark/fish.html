@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fish</title>
+    <script src="processing.js"></script>
+</head>
+<body>
+
+<script type="application/processing" data-processing-target="pjs">
+width=600;
+height=600;
+void setup() {
+    size(600,600);
+}
+
+angleMode = "radians";
+
+var FISH_COUNT = 50;
+var GOLDFISH_COUNT=5;
+var G = 1;
+var FOLLOW_SPEED_LIMIT = 1;
+
+var Particle = function(position) {
+    this.acceleration = new PVector(0, -0.0);
+    this.velocity = new PVector(random(-1, 1), random(-1, 0));
+    this.position = position.get();
+    this.timeToLive = 200;
+};
+
+Particle.prototype.run = function() {
+    this.update();
+    this.display();
+};
+
+Particle.prototype.update = function(){
+    this.velocity.add(this.acceleration);
+    this.position.add(this.velocity);
+    this.timeToLive -= 2;
+};
+
+Particle.prototype.display = function() {
+    stroke(255, 255, 255, 100);
+    strokeWeight(2);
+    fill(255, 255, 255, 50);
+    var radius = map (this.timeToLive, 200, 0, 3, 15);
+    ellipse(this.position.x, this.position.y, radius, radius);
+};
+
+Particle.prototype.isDead = function() {
+    if (this.timeToLive < 0) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+var ParticleSystem = function(position) {
+    this.origin = position.get();
+    this.particles = [];
+};
+
+ParticleSystem.prototype.addParticle = function() {
+    this.particles.push(new Particle(this.origin));
+};
+
+ParticleSystem.prototype.run = function() {
+    for (var i = this.particles.length-1; i >= 0; i--) {
+        var p = this.particles[i];
+        p.run();
+        if (p.isDead()) {
+            this.particles.splice(i, 1);
+        }
+    }
+};
+
+var Fish = function(id) {
+  this.position = new PVector(random(width), random(height));
+  this.velocity = new PVector(0, 0);
+  this.acceleration = new PVector(0, 0);
+  this.angle = 0;
+  this.color = color(223, 230, 83);
+  this.followSpeed = FOLLOW_SPEED_LIMIT;
+  this.mass = 0.5;
+  this.id = id;
+};
+
+// follow the leader!
+Fish.prototype.follow = function(other) {
+    if (other && other !== this) {
+        this.applyForce(this.calculateAttraction(other));
+        this.velocity.add(this.acceleration);
+        this.velocity.limit(this.followSpeed);
+    } else {
+        this.applyForce(new PVector(0,-0.01));
+        this.velocity.add(this.acceleration);
+        this.velocity.limit(0.3);
+    }
+    this.position.add(this.velocity);
+};
+
+Fish.prototype.swim = function(leader) {
+    this.update(leader);
+};
+
+Fish.prototype.update = function(leader) {
+    this.follow(leader);
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    rotate(this.angle);
+    this.draw();
+    popMatrix();
+    this.angle = 0.0;
+    this.acceleration.mult(0);
+    this.checkEdges();
+};
+
+Fish.prototype.draw = function() {
+    noStroke();
+    fill(this.color);
+    ellipse(0, 0, 10, 20);
+    ellipse(0, 15, 5, 10);
+    fill(0, 0, 0);
+    ellipse(5, -5, 2, 2);
+    ellipse(-5, -5, 2, 2);
+};
+
+Fish.prototype.checkEdges = function() {
+  if (this.position.x > width+100) {
+    this.position.x = -100;
+  }
+  else if (this.position.x < -100) {
+    this.position.x = width+100;
+  }
+  if (this.position.y > height+100) {
+    this.position.y = -100;
+  }
+  else if (this.position.y < -100) {
+    this.position.y = height+100;
+  }
+};
+
+Fish.prototype.applyForce = function(force) {
+    var f = PVector.div(force, this.mass);
+    this.acceleration.add(f);
+};
+
+Fish.prototype.calculateAttraction = function(m, i) {
+    // Calculate direction of force
+    var force = PVector.sub(this.position, m.position);
+    // Distance between objects
+    var distance = force.mag();
+    // Limiting the distance to eliminate "extreme" results for very close or very far objects
+    distance = constrain(distance, 5.0, 10.0);
+    // Normalize vector (distance doesn't matter here, we just want this vector for direction
+    force.normalize();
+    // Calculate gravitional force magnitude
+    var strength = (-G * this.mass * m.mass) / (distance * distance);
+    // Get force vector --> magnitude * direction
+    force.mult(strength);
+    return force;
+};
+// noop functions:
+Fish.prototype.speedUp = function() {};
+Fish.prototype.slowDown = function() {};
+Fish.prototype.turnLeft = function() {};
+Fish.prototype.turnRight = function() {};
+
+var Goldfish = function() {
+    Fish.call(this);
+    // points for bezier curves
+    // left side
+    this.a1 = new PVector(-10, -20);
+    this.b1 = new PVector(-10, -1);
+    this.c1 = new PVector(-5, 30);
+    this.d1 = new PVector(0, 50);
+    // right side
+    this.a2 = new PVector(10, -20);
+    this.b2 = new PVector(10, -1);
+    this.c2 = new PVector(5, 30);
+    this.d2 = new PVector(0, 50);
+
+    this.period = 120;
+    this.rand = random(-100,100);
+    this.position = new PVector(random(0,width),random(0,height));
+    this.velocity = new PVector(0,-1);
+    this.acceleration = new PVector(0,0);
+    
+    this.bubbles = new ParticleSystem(this.getMouthPosition());
+    this.timerOffset = Math.floor(random(0, 1000));
+};
+
+Goldfish.prototype = Object.create(Fish.prototype);
+Goldfish.prototype.constructor = Goldfish;
+
+Goldfish.prototype.applyForce = function(force) {
+    this.acceleration.add(force);
+};
+
+Goldfish.prototype.speedUp = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    if (dir.x === 0 && dir.y === 0) {
+        // kick off an initial velocity
+        dir.y = -0.1;
+    } else {
+        dir.mult(0.1);
+    }
+    this.applyForce(dir);
+};
+Goldfish.prototype.slowDown = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    dir.mult(-0.1);
+    this.applyForce(dir);
+};
+
+Goldfish.prototype.turnLeft = function() {
+    this.velocity.rotate(-PI/90);
+};
+
+Goldfish.prototype.turnRight = function() {
+    this.velocity.rotate(PI/90);
+};
+
+Goldfish.prototype.checkEdges = function() {
+  if (this.position.x > width+100) {
+    this.position.x = -100;
+  }
+  else if (this.position.x < -100) {
+    this.position.x = width+100;
+  }
+  if (this.position.y > height+100) {
+    this.position.y = -100;
+  }
+  else if (this.position.y < -100) {
+    this.position.y = height+100;
+  }
+};
+
+Goldfish.prototype.update = function() {
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(5);
+    this.period = 120 - 20*this.velocity.mag();
+    this.position.add(this.velocity);
+    this.acceleration.mult(0);
+    this.draw();
+    this.makeBubbles();
+    this.checkEdges();
+};
+
+Goldfish.prototype.getMouthPosition = function() {
+    var mouthPosition = new PVector(
+        this.position.x, this.position.y-50);
+    mouthPosition.sub(this.position);
+    mouthPosition.rotate(PI/2+this.velocity.heading());
+    mouthPosition.add(this.position);
+    return mouthPosition;
+};
+
+Goldfish.prototype.makeBubbles = function() {
+    this.bubbles.origin.set(this.getMouthPosition());
+    this.bubbles.run();
+    if ((this.timerOffset + frameCount) % 100 === 0) {
+        this.bubbles.addParticle();
+        this.bubbles.addParticle();
+        this.bubbles.addParticle();
+    }
+};
+
+Goldfish.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    rotate(PI/2+this.velocity.heading());
+    scale(1,1.5);
+
+    var r1 = 15;
+    var r2 = 5;
+    var r3 = 15;
+    var amplitude = sin(TWO_PI * (frameCount+this.rand) / this.period);
+    var a1x = this.a1.x;
+    var a1y = this.a1.y;
+    var b1x = map(amplitude, -1, 1, this.b1.x-r1, this.b1.x+r1);
+    var b1y = this.b1.y;
+    var c1x = -map(amplitude, -1, 1, this.c1.x-r2, this.c1.x+r2);
+    var c1y = this.c1.y;
+    var d1x = map(amplitude, -1, 1, this.d1.x-r3, this.d1.x+r3);
+    var d1y = this.d1.y;
+
+
+    var d2x = map(amplitude, -1, 1, this.d2.x-r3, this.d2.x+r3);
+    var d2y = this.d2.y;
+    var c2x = -map(amplitude, -1, 1, this.c2.x-r2, this.c2.x+r2);
+    var c2y = this.c2.y;
+    var b2x = this.b2.x;
+    var b2x = map(amplitude, -1, 1, this.b2.x-r1, this.b2.x+r1);
+    var b2y = this.b2.y;
+    var a2x = this.a2.x;
+    var a2y = this.a2.y;
+
+    noStroke();
+    // eyes
+    fill(0, 0, 0);
+    ellipse(8,-25,4,4);
+    ellipse(-8,-25,4,4);
+
+    // body
+    fill(255, 94, 0);
+    beginShape();
+    vertex(a1x, a1y);
+    bezierVertex(b1x,b1y,c1x, c1y,d1x,d1y);
+    vertex(d2x, d2y);
+    bezierVertex(c2x,c2y,b2x, b2y,a2x,a2y);
+    endShape();
+
+    // head
+    beginShape();
+    curveVertex(a2x,a2y);
+    curveVertex(a2x,a2y);
+    curveVertex(a2x-6,a2y-10);
+    curveVertex(a1x+6,a1y-10);
+    curveVertex(a1x, a1y);
+    curveVertex(a1x, a1y);
+    endShape();
+
+    // fins
+    triangle(7,-19, 20,0, 10,-5);
+    triangle(-7,-19, -20,0, -10,-5);
+/*
+//this draws the points on the bezier curves for debugging the oscillation
+    strokeWeight(4);
+    stroke(255, 0, 0);
+    point(a1x, a1y);
+    point(b1x, b1y);
+    point(c1x, c1y);
+    point(d1x, d1y);
+
+    stroke(0,0,255);
+    point(a2x, a2y);
+    point(b2x, b2y);
+    point(c2x, c2y);
+    point(d2x, d2y);
+*/
+
+    popMatrix();
+};
+
+var EcoSystem = function() {
+    this.fishes = [];
+};
+
+EcoSystem.prototype.addFish = function(fish) {
+    this.particles.push(fish);
+};
+
+EcoSystem.prototype.run = function() {
+    for (var i = 0; i<this.fishes.length; i++) {
+        var fish = this.fishes[i];
+        fish.swim(this.leader);
+    }
+};
+
+EcoSystem.prototype.nominateLeader = function() {
+    if (this.fishes.length > 0) {
+        this.leader = this.fishes[0];
+    } else {
+        this.leader = null;
+    }
+};
+
+EcoSystem.prototype.populate = function(fishCount, goldfishCount) {
+    for (var i = 0; i < fishCount; i++) {
+        this.fishes.push(new Fish(i));
+    }
+    // nominate a leader for the other fish to follow
+    this.nominateLeader();
+    for (var i=0; i<goldfishCount; i++) {
+        this.fishes.push(new Goldfish());
+    }
+};
+
+EcoSystem.prototype.swim = function() {
+    for (var i = 0; i < this.fishes.length; i++) {
+        this.fishes[i].swim(this.leader);
+    }
+};
+
+EcoSystem.prototype.speedUp = function() {
+    for (var i=0; i<this.fishes.length; i++) {
+        this.fishes[i].speedUp();
+    }
+};
+
+EcoSystem.prototype.slowDown = function() {
+    for (var i=0; i<this.fishes.length; i++) {
+        this.fishes[i].slowDown();
+    }
+};
+
+EcoSystem.prototype.turnLeft = function() {
+    for (var i=0; i<this.fishes.length; i++) {
+        this.fishes[i].turnLeft();
+    }
+};
+
+EcoSystem.prototype.turnRight = function() {
+    for (var i=0; i<this.fishes.length; i++) {
+        this.fishes[i].turnRight();
+    }
+};
+
+var ecoSystem = new EcoSystem();
+ecoSystem.populate(FISH_COUNT, GOLDFISH_COUNT);
+
+draw = function() {
+    background(177, 225, 230);
+    ecoSystem.run();
+};
+
+void keyPressed() {
+    if (keyCode === RIGHT) {
+        ecoSystem.turnRight();
+    } else if (keyCode === LEFT) {
+        ecoSystem.turnLeft();
+    } else if (keyCode === UP) {
+        ecoSystem.speedUp();
+    } else if (keyCode === DOWN) {
+        ecoSystem.slowDown();
+    }
+};
+
+</script>
+<canvas id="pjs" width="400" height="400"> </canvas>
+</body>
+</html>
