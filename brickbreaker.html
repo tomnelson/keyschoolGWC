@@ -6,11 +6,11 @@
   <script src="buzz.min.js"></script>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
+  <canvas id="canvas" width="800" height="800"></canvas>
   <script>
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {
-        processing.size(400,400);
+        processing.size(800,800);
         processing.background(0xFFF);
 
         var mouseIsPressed = false;
