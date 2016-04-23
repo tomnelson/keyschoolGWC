@@ -43,30 +43,87 @@ var bump = new buzz.sound( "bump", {
 var no = new buzz.sound( "no", {
     formats: [ "ogg", "mp3" ]
 });
+var click = new buzz.sound( "click", {
+    formats: [ "ogg", "mp3" ]
+});
+var whistle = new buzz.sound( "whistle", {
+    formats: [ "ogg", "mp3" ]
+});
 noStroke();
-var gameOver = false;
+var gameOn = false;
+colorMode(HSB, 255, 100, 100);
 var startX = 200;
 var startY = 200;
 var paddleWidth = 50;
 var paddleHeight = 10;
 var ballCount = 3;
 var Brick = function(x,y,w,h) {
-    this.x = x;
-    this.y = y;
+    this.position = new PVector(x, y);
+    this.velocity = new PVector(0, 0);
     this.w = w;
     this.h = h;
+    this.bev = 2.5;
+    this.locs = [
+     new PVector(0, 0),
+     new PVector(0, this.h),
+     new PVector(this.w, this.h),
+     new PVector(this.w, 0),
+     new PVector(this.bev, this.bev),
+     new PVector(this.bev, this.h-this.bev),
+     new PVector(this.w-this.bev, this.h-this.bev),
+     new PVector(this.w-this.bev, this.bev)
+    ];
+   // println("locs:"+this.locs);
+};
+Brick.prototype.bevel = function(p1, p2, p3, p4) {
+     var a = this.locs[p1];
+     var b = this.locs[p2];
+     var c = this.locs[p3];
+     var d = this.locs[p4];
+     beginShape();
+     vertex(a.x, a.y);
+     vertex(b.x, b.y);
+     vertex(c.x, c.y);
+     vertex(d.x, d.y);
+     endShape();
+};
+Brick.prototype.update = function() {
+    this.position.add(this.velocity);  
 };
 Brick.prototype.draw = function() {
-    rect(this.x, this.y, this.w, this.h);
+    noStroke();
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    fill(0, 100, 100);
+    rect(0, 0, this.w, this.h);
+    fill(0, 40, 100);
+    this.bevel(0, 1, 5, 4);
+    this.bevel(3, 0, 4, 7);    
 
+    fill(0, 100, 60);
+    this.bevel(2, 3, 7, 6);
+    this.bevel(1, 2, 6, 5);
+    popMatrix();
 };
 Brick.prototype.hitBy = function(ball) {
-    if(this.x < ball.x && ball.x < this.x+this.w && this.y < ball.y && ball.y < this.y+this.h) {
+    if(this.position.x < ball.position.x && ball.position.x < this.position.x+this.w && 
+        this.position.y < ball.position.y && ball.position.y < this.position.y+this.h) {
+            this.velocity.x = ball.velocity.x*1.6;
+            this.velocity.y = ball.velocity.y*1.6;
         return true;
     } else {
         return false;
     }
 };
+Brick.prototype.wallCheck = function() {
+    if(this.position.x > width || this.position.x < -this.w) {
+        return true;
+    }
+    if(this.position.y < -this.h || this.position.y > width) {
+        return true;
+    }
+};
+
 var bricks = [];
 var makeBricks = function(rows, cols) {
     var ypos=10;
@@ -83,26 +140,63 @@ var makeBricks = function(rows, cols) {
 makeBricks(5,7);
 
 var Paddle = function(x,y,w,h) {
-    this.x = x;
-    this.y = y;
+    this.position = new PVector(x, y);
+    this.velocity = new PVector(0,0);
     this.w = w;
     this.h = h;
     this.previousX = x;
+    this.bev = 2.5;
+    this.locs = [
+     new PVector(0, 0),
+     new PVector(0, this.h),
+     new PVector(this.w, this.h),
+     new PVector(this.w, 0),
+     new PVector(this.bev, this.bev),
+     new PVector(this.bev, this.h-this.bev),
+     new PVector(this.w-this.bev, this.h-this.bev),
+     new PVector(this.w-this.bev, this.bev)
+    ];
+};
+Paddle.prototype.bevel = function(p1, p2, p3, p4) {
+     var a = this.locs[p1];
+     var b = this.locs[p2];
+     var c = this.locs[p3];
+     var d = this.locs[p4];
+     beginShape();
+     vertex(a.x, a.y);
+     vertex(b.x, b.y);
+     vertex(c.x, c.y);
+     vertex(d.x, d.y);
+     endShape();
 };
 Paddle.prototype.hit = function(ball) {
     if(
-        this.x - this.w/2 <= ball.x && 
-        ball.x <= this.x + this.w/2 && 
-        ball.yspeed > 0 && 
-        this.y+this.h >= ball.y && ball.y >= this.y) {
+        this.position.x - this.w/2 <= ball.position.x && 
+        ball.position.x <= this.position.x + this.w/2 && 
+        ball.velocity.y > 0 && 
+        this.position.y+this.h >= ball.position.y && ball.position.y >= this.position.y) {
         return true;
     }
     return false;
 };
+Paddle.prototype.update = function() {
+    this.velocity.x = mouseX - this.previousX;
+    this.previousX = mouseX;
+    this.position.add(this.velocity);
+};
 Paddle.prototype.draw = function() {
-    this.previousX = this.x;
-    this.x = mouseX;
-     rect(this.x-this.w/2,this.y, this.w, this.h);
+    pushMatrix();
+    translate(this.position.x-this.w/2, this.position.y);
+    fill(45, 255, 255);
+    rect(0,0, this.w, this.h);
+    fill(45, 200, 255);
+    this.bevel(0, 1, 5, 4);
+    this.bevel(3, 0, 4, 7);    
+
+    fill(45, 255, 200);
+    this.bevel(2, 3, 7, 6);
+    this.bevel(1, 2, 6, 5);
+    popMatrix();
 };
 Paddle.prototype.print = function() {
     println("paddle x:"+this.x+",y:"+this.y+",w"+this.w+",h:"+this.h+",previousX:"+this.previousX);
@@ -110,46 +204,55 @@ Paddle.prototype.print = function() {
 
 var paddle = new Paddle(200,350,paddleWidth,paddleHeight);
 var Ball = function(x,y,d,xspeed,yspeed) {
-    this.x = x;
-    this.y = y;
+    this.position = new PVector(x, y);
+    this.velocity = new PVector(xspeed,yspeed);
     this.d = d;
-    this.xspeed = xspeed;
-    this.yspeed = yspeed;
     this.ballCount = 3;
 };
 Ball.prototype.draw = function() {
     // update the ball position and render it
     this.updatePosition();
-    ellipse(this.x,this.y,this.d,this.d);
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    fill(0, 0, 255,120);
+    for (var i=this.d; i > 0; i-=5) {
+        ellipse(0,0,i, i);
+    }
+    popMatrix();
 };
 Ball.prototype.updatePosition = function() {
-    this.x += this.xspeed;
-    this.y += this.yspeed;
+    if(gameOn === true) {
+        this.position.add(this.velocity);
+    }
 };
 Ball.prototype.print = function() {
     print("Ball x:"+this.x+",y:"+this.y+",d:"+this.d);
 };
 Ball.prototype.wallBounce = function() {
-    if(this.x > 400 - this.d/2 || this.x < this.d/2) {
-        this.xspeed *= -1;
-//        playSound(getSound("rpg/hit-thud"));
-					   bump.play();
+    if(this.position.x >400 - this.d/2 || this.position.x < this.d/2) {
+        this.velocity.x *= -1;
+        try {
+    //        playSound(getSound("rpg/hit-thud"));
+    thud.play();
+        } catch (err) {}
     }
-    if(this.y < this.d/2) {
-        this.yspeed *= -1;
-//        playSound(getSound("rpg/hit-thud"));
-		bump.play();
+    if(this.position.y < this.d/2) {
+        this.velocity.y *= -1;
+        try {
+ //           playSound(getSound("rpg/hit-thud"));
+ thud.play();
+        } catch (err) {}
     }
-    if(this.y > 400) {
+    if(this.position.y > 400) {
         this.ballCount--;
-        this.x = startX;
-        this.y = startY;
-        this.yspeed = 3;
-        this.xspeed = random(-3,3);
+        this.position = new PVector(startX, startY);
+        this.velocity = new PVector(random(-3,3), 3);
         if(this.ballCount <= 0) {
-//            playSound(getSound("rpg/giant-no"));
-			     no.play();
-            gameOver = true;
+            try {
+               // playSound(getSound("rpg/giant-no"));
+                no.play();
+            } catch (err) {}
+            gameOn = false;
         }
     } 
 
@@ -160,63 +263,69 @@ var ball = new Ball(
     20,
     random(-3,3),
     3);
-
+mouseClicked = function() {
+    gameOn = true;
+    ball = new Ball(
+        startX,
+        startY,
+        20,
+        random(-3,3),
+        3);
+    makeBricks(5,7);
+};
 draw = function() {
-    if(gameOver) {return;}
-
     // blue background
-    background(29, 40, 115);
+    background(170, 100, 100);
     // draw the bricks
-    fill(255, 0, 0);
-    var liveBrick = false;
     // draw each brick and check for ball collision
-    for(var i=0; i<bricks.length; i++) {
+    for(var i=bricks.length-1; i>=0; i--) {
         var b = bricks[i];
         if(b !== null) {
+            b.update();
             b.draw();
-            liveBrick = true; // i have at least one brick remaining
             if(b.hitBy(ball)) {
-//                playSound(getSound("rpg/metal-clink"));
-				  whack.play();
-                bricks[i] = null;
-                ball.yspeed *= -1;
+                try {
+                   // playSound(getSound("rpg/metal-clink"));
+                    click.play();
+                } catch (err) {}
+                ball.velocity.y *= -1;
+            }
+            if (b.wallCheck()) {
+                bricks.splice(i,1);
             }
         }
     }
     // if no more bricks, then they won!
-    if(liveBrick === false) {
-//        playSound(getSound("retro/whistle2"));
-
+    if(bricks.length === 0) {
+        if (gameOn === true) {
+            try {
+             //   playSound(getSound("retro/whistle2"));
+                whistle.play();
+            } catch (err) {}
+            gameOn = false;
+        }
         text("WINNER!",180,200);
-        gameOver = true;
     }
     // draw the ball
-    fill(255, 255, 255);
     ball.draw();
     ball.wallBounce();
     //draw the paddle
-    fill(255, 200, 0);
+    paddle.update();
     paddle.draw();
     
     if(paddle.hit(ball)) {
-        var paddleMotion = paddle.x - paddle.previousX;
-        //playSound(getSound("rpg/hit-whack"));
-				  whack.play();
-        ball.yspeed *= -1;
-        if(ball.xspeed >= 0) {
-            if(paddleMotion > 0) {
-                ball.xspeed++;
-            } else if(paddleMotion < 0) {
-                ball.xspeed--;
-            }
-        } else {
-            if(paddleMotion < 0) {
-                ball.xspeed--;
-            } else if(paddleMotion > 0) {
-                ball.xspeed++;
-            }
-        }
-    }    
+        try {
+          //  playSound(getSound("rpg/hit-whack"));
+            whack.play();
+        } catch (err) {}
+        ball.velocity.y *= -1;
+        ball.velocity.x += paddle.velocity.x;
+        ball.velocity.x = min(3, max(-3, ball.velocity.x));
+        
+    }
+    if(gameOn === false) {
+        text("Click to Play",170,240);   
+    }
 };
 
 
