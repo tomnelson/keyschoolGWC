@@ -237,6 +237,7 @@ Ball.prototype.wallBounce = function() {
         this.velocity.x *= -1;
         try {
     //        playSound(getSound("rpg/hit-thud"));
+    thud.stop();
     thud.play();
         } catch (err) {}
     }
@@ -290,6 +291,7 @@ draw = function() {
             if(b.hitBy(ball)) {
                 try {
                    // playSound(getSound("rpg/metal-clink"));
+                   click.stop();
                     click.play();
                 } catch (err) {}
                 ball.velocity.y *= -1;
