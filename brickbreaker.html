@@ -250,7 +250,7 @@ Ball.prototype.wallBounce = function() {
     if(this.position.y > height) {
         this.ballCount--;
         this.position = new PVector(startX, startY);
-        this.velocity = new PVector(random(-3,3), 3);
+        this.velocity = new PVector(random(-6,6), 6);
         if(this.ballCount <= 0) {
             try {
                // playSound(getSound("rpg/giant-no"));
@@ -265,16 +265,16 @@ var ball = new Ball(
     startX,
     startY,
     0.05*width,
-    random(-3,3),
-    3);
+    random(-6,6),
+    6);
 mouseClicked = function() {
     gameOn = true;
     ball = new Ball(
         startX,
         startY,
         0.05*width,
-        random(-3,3),
-        3);
+        random(-6,6),
+        6);
     makeBricks(5,7);
 };
 draw = function() {
