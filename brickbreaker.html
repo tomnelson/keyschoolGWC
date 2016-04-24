@@ -219,7 +219,7 @@ Ball.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
     fill(0, 0, 255,120);
-    for (var i=this.d; i > 0; i-=5) {
+    for (var i=this.d; i > 0; i-=3) {
         ellipse(0,0,i, i);
     }
     popMatrix();
@@ -293,13 +293,10 @@ draw = function() {
     // if no more bricks, then they won!
     if(bricks.length === 0) {
         if (gameOn === true) {
-            try {
-             //   playSound(getSound("retro/whistle2"));
-                whistle.play();
-            } catch (err) {}
+            whistle.play();
             gameOn = false;
         }
-        text("WINNER!",width/2,height/2);
+        text("WINNER!",width/2-25,height/2);
     }
     // draw the ball
     ball.draw();
