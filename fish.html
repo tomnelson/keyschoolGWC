@@ -5,11 +5,12 @@
   <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
 </head>
 <body>
+  <h2>Use the arrow keys to direct the fish</h2>
   <canvas id="canvas"></canvas>
   <script>
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {
-        processing.size(800, 800);
+        processing.size(600, 600);
         processing.background(0xFFF);
 
         var mouseIsPressed = false;
@@ -25,15 +26,10 @@
             processing.externals.sketch.imageCache.add(url);
             return processing.loadImage(url);
         }
-
-        // use degrees rather than radians in rotate function
         var rotate = processing.rotate;
-      //  processing.rotate = function (angle) {
-      //      rotate(processing.radians(angle));
-      //  };
 
         with (processing) {
-
+// all of the KA code is pasted inside the 'with' statement
 
 /*
  a school of goldfish. control motion with the arrow keys:
