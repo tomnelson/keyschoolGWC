@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JavaScript</title>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
+</head>
+<body>
+  <h2>image loading demo</h2>
+  <canvas id="canvas"></canvas>
+  <script>
+      /* @pjs preload="x-wing.gif,tie-fighter.jpg"; */
+    var canvas = document.getElementById("canvas");
+    var processing = new Processing(canvas, function(processing) {
+
+       /* @pjs preload="x-wing.gif,tie-fighter.jpg"; */
+        var b = processing.loadImage("x-wing.gif");
+        var t = processing.loadImage("tie-fighter.jpg");
+
+        processing.size(600, 600);
+        processing.background(0xFFF);
+
+        var mouseIsPressed = false;
+        processing.mousePressed = function () { mouseIsPressed = true; };
+        processing.mouseReleased = function () { mouseIsPressed = false; };
+
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        function getImage(s) {
+            var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
+            processing.externals.sketch.imageCache.add(url);
+            return processing.loadImage(url);
+        }
+        var rotate = processing.rotate;
+        var image = processing.image;
+        var imageMode = processing.imageMode;
+
+        with (processing) {
+// all of the KA code is pasted inside the 'with' statement
+// base class for both ships
+var Mover = function(x, y, image) {
+    this.position = new PVector(x, y);
+    this.velocity = new PVector(0,-1);
+    this.acceleration = new PVector(0,0);
+    this.image = image;
+    this.scale = new PVector(1,1);
+};
+Mover.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x,this.position.y);
+    rotate(PI/2+this.velocity.heading());
+    scale(this.scale.x, this.scale.y);
+    imageMode(CENTER);
+    image(this.image, 0,0);
+    popMatrix();
+};
+Mover.prototype.update = function() {
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(5);
+    this.position.add(this.velocity);
+    this.acceleration.mult(0);
+    this.draw();
+    this.checkEdges();
+};
+Mover.prototype.applyForce = function(force) {
+   // println("applyForce:"+force);
+    this.acceleration.add(force);
+};
+Mover.prototype.speedUp = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    if (dir.x === 0 && dir.y === 0) {
+        // kick off an initial velocity
+        dir.y = -0.1;
+    } else {
+        dir.mult(0.1);
+    }
+    this.applyForce(dir);
+};
+Mover.prototype.slowDown = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    dir.mult(-0.1);
+    this.applyForce(dir);
+    this.update();
+};
+
+Mover.prototype.turnLeft = function() {
+    this.velocity.rotate(-PI/90);
+};
+
+Mover.prototype.turnRight = function() {
+    this.velocity.rotate(PI/90);
+};
+
+Mover.prototype.checkEdges = function() {
+  if (this.position.x > width+100) {
+    this.position.x = -100;
+  }
+  else if (this.position.x < -100) {
+    this.position.x = width+100;
+  }
+  if (this.position.y > height+100) {
+    this.position.y = -100;
+  }
+  else if (this.position.y < -100) {
+    this.position.y = height+100;
+  }
+};
+var XWing = function(x, y, image) {
+    Mover.call(this, x, y, image);
+    this.scale.mult(0.5);
+};
+XWing.prototype = Object.create(Mover.prototype);
+XWing.prototype.constructor = XWing;
+
+var TieFighter = function(x, y, image) {
+    Mover.call(this, x, y, image);
+    this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
+};
+TieFighter.prototype = Object.create(Mover.prototype);
+TieFighter.prototype.constructor = TieFighter;
+
+TieFighter.prototype.checkEdges = function() {
+  if (this.position.x > width+100) {
+    this.position = new PVector(random(0, width), -100);
+    this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
+  }
+  else if (this.position.x < -100) {
+    this.position = new PVector(random(0, width), -100);
+    this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
+  }
+  if (this.position.y > height+100) {
+    this.position = new PVector(random(0, width), -100);
+    this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
+  }
+  else if (this.position.y < -100) {
+//    this.position.y = height+100;
+  }
+};
+
+var xwing = new XWing(random(0,width),random(0,height), b);
+var fighter = new TieFighter(random(0,width),random(0,height),t);
+fighter.applyForce(new PVector(-0.02, -0.001));
+var draw=function() {
+    background(0,0,0);
+    xwing.update();
+    xwing.draw();
+    fighter.update();
+    fighter.draw();
+};
+keyPressed = function() {
+    if (keyCode === RIGHT) {
+        xwing.turnRight();
+    } else if (keyCode === LEFT) {
+        xwing.turnLeft();
+    } else if (keyCode === UP) {
+        xwing.speedUp();
+    } else if (keyCode === DOWN) {
+        xwing.slowDown();
+    }
+};
+
+
+       }
+        if (typeof draw !== 'undefined') processing.draw = draw;
+    });
+  </script>
+</body>
+</html>
