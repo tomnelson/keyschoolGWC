@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Fish Pond</title>
+  <title>Mover Pond</title>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
 </head>
 <body>
@@ -48,36 +48,10 @@
 */
 angleMode = "radians";
 
-var FISH_COUNT = 50;
+var FISH_COUNT = 20;
 var GOLDFISH_COUNT=5;
 var G = 1;
 var FOLLOW_SPEED_LIMIT = 1;
-var Deep = function() {
-    this.zOff = 0.0;
-};
-Deep.prototype.draw = function() {
-   colorMode(HSB);
-   var xOff = 0.0;
-    for (var x = 0; x <50; x++) {
-        var yOff = 0.0;
-        for (var y = 0; y < 50; y++) {
-            var bright = map(noise(xOff, yOff, this.zOff), 0, 1, 0, 255);
-       stroke(130, bright,bright, 255);
-       pushMatrix();
-      // translate(x, y);
-      scale(10,10);
-       point(x,y);
-       popMatrix();
-       // ellipse(x*4, y*4, 10,10);
-            yOff += 0.01;
-        }
-        xOff += 0.01;
-    }
-    this.zOff += 0.01;
-    colorMode(RGB);
-};
-var deep = new Deep();
-
 
 var Particle = function(position) {
     this.acceleration = new PVector(0, -0.0);
@@ -132,37 +106,22 @@ ParticleSystem.prototype.run = function() {
     }
 };
 
-var Fish = function(id) {
+var Mover = function(id) {
   this.position = new PVector(random(width), random(height));
   this.velocity = new PVector(0, 0);
   this.acceleration = new PVector(0, 0);
   this.angle = 0;
-  this.color = color(223, 230, 83);
-  this.followSpeed = FOLLOW_SPEED_LIMIT;
-  this.mass = 0.5;
   this.id = id;
 };
 
-// follow the leader!
-Fish.prototype.follow = function(other) {
-    if (other && other !== this) {
-        this.applyForce(this.calculateAttraction(other));
-        this.velocity.add(this.acceleration);
-        this.velocity.limit(this.followSpeed);
-    } else {
-        this.applyForce(new PVector(0,-0.01));
-        this.velocity.add(this.acceleration);
-        this.velocity.limit(0.3);
-    }
-    this.position.add(this.velocity);
+Mover.prototype.swim = function() {
+   // println("mover swim");
+    this.update();
 };
 
-Fish.prototype.swim = function(leader) {
-    this.update(leader);
-};
-
-Fish.prototype.update = function(leader) {
-    this.follow(leader);
+Mover.prototype.update = function() {
+  //  this.follow(leader);
+ // println("mover update");
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
@@ -173,17 +132,12 @@ Fish.prototype.update = function(leader) {
     this.checkEdges();
 };
 
-Fish.prototype.draw = function() {
-    noStroke();
-    fill(this.color);
-    ellipse(0, 0, 10, 20);
-    ellipse(0, 15, 5, 10);
-    fill(0, 0, 0);
-    ellipse(5, -5, 2, 2);
-    ellipse(-5, -5, 2, 2);
+Mover.prototype.draw = function() {
+    //fill(255,0,0);
+    //ellipse(100,100,100,100);
 };
 
-Fish.prototype.checkEdges = function() {
+Mover.prototype.checkEdges = function() {
   if (this.position.x > width+100) {
     this.position.x = -100;
   }
@@ -198,12 +152,12 @@ Fish.prototype.checkEdges = function() {
   }
 };
 
-Fish.prototype.applyForce = function(force) {
+Mover.prototype.applyForce = function(force) {
     var f = PVector.div(force, this.mass);
     this.acceleration.add(f);
 };
 
-Fish.prototype.calculateAttraction = function(m, i) {
+Mover.prototype.calculateAttraction = function(m, i) {
     // Calculate direction of force
     var force = PVector.sub(this.position, m.position);
     // Distance between objects
@@ -218,19 +172,92 @@ Fish.prototype.calculateAttraction = function(m, i) {
     force.mult(strength);
     return force;
 };
-// noop functions:
-Fish.prototype.speedUp = function() {};
-Fish.prototype.slowDown = function() {};
-Fish.prototype.turnLeft = function() {
+Mover.prototype.speedUp = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    if (dir.x === 0 && dir.y === 0) {
+        // kick off an initial velocity
+        dir.y = -0.1;
+    } else {
+        dir.mult(0.1);
+    }
+    this.applyForce(dir);
+};
+Mover.prototype.slowDown = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    dir.mult(-0.1);
+    this.applyForce(dir);
+};
+
+Mover.prototype.turnLeft = function() {
     this.velocity.rotate(-PI/90);
 };
 
-Fish.prototype.turnRight = function() {
+Mover.prototype.turnRight = function() {
     this.velocity.rotate(PI/90);
 };
 
-var Goldfish = function() {
-    Fish.call(this);
+var Follower = function(id) {
+    Mover.call(this, id);
+};
+Follower.prototype = Object.create(Mover.prototype);
+Follower.prototype.constructor = Follower;
+// follow the leader!
+Follower.prototype.follow = function(other) {
+   // println("follower:"+this.id+" follow "+other.id);
+    if (other && other !== this) {
+       // println("follow "+this.id+" follows "+other.id);
+        this.applyForce(this.calculateAttraction(other));
+        this.velocity.add(this.acceleration);
+        this.velocity.limit(this.followSpeed);
+    } else {
+       // println("follow "+this.id+" not following");
+       // this.applyForce(new PVector(0,-0.01));
+        this.velocity.add(this.acceleration);
+        this.velocity.limit(1.0);
+       // println(this.id+" new velocity:"+this.velocity);
+    }
+    this.position.add(this.velocity);
+};
+Follower.prototype.update = function(leader) {
+    //println("follower:"+this.id+" update "+leader.id);
+    this.follow(leader);
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    rotate(this.angle);
+    this.draw();
+    popMatrix();
+    this.angle = 0.0;
+    this.acceleration.mult(0);
+    this.checkEdges();
+};
+Follower.prototype.swim = function(leader) {
+  //  println("follower:"+this.id+" swim");
+    this.update(leader);
+};
+
+
+var Fish = function(id) {
+    Follower.call(this, id);
+    this.color = color(223, 230, 83);
+    this.followSpeed = FOLLOW_SPEED_LIMIT;
+    this.mass = 0.5;
+};
+Fish.prototype = Object.create(Follower.prototype);
+Fish.prototype.constructor = Fish;
+
+Fish.prototype.draw = function() {
+    noStroke();
+    fill(this.color);
+    ellipse(0, 0, 10, 20);
+    ellipse(0, 15, 5, 10);
+    fill(0, 0, 0);
+    ellipse(5, -5, 2, 2);
+    ellipse(-5, -5, 2, 2);
+};
+
+
+var Goldfish = function(id) {
+    Mover.call(this, id);
     // points for bezier curves
     // left side
     this.a1 = new PVector(-10, -20);
@@ -253,36 +280,13 @@ var Goldfish = function() {
     this.timerOffset = Math.floor(random(0, 1000));
 };
 
-Goldfish.prototype = Object.create(Fish.prototype);
+Goldfish.prototype = Object.create(Mover.prototype);
 Goldfish.prototype.constructor = Goldfish;
 
 Goldfish.prototype.applyForce = function(force) {
     this.acceleration.add(force);
 };
 
-Goldfish.prototype.speedUp = function() {
-    var dir = new PVector(this.velocity.x, this.velocity.y);
-    if (dir.x === 0 && dir.y === 0) {
-        // kick off an initial velocity
-        dir.y = -0.1;
-    } else {
-        dir.mult(0.1);
-    }
-    this.applyForce(dir);
-};
-Goldfish.prototype.slowDown = function() {
-    var dir = new PVector(this.velocity.x, this.velocity.y);
-    dir.mult(-0.1);
-    this.applyForce(dir);
-};
-
-Goldfish.prototype.turnLeft = function() {
-    this.velocity.rotate(-PI/90);
-};
-
-Goldfish.prototype.turnRight = function() {
-    this.velocity.rotate(PI/90);
-};
 
 Goldfish.prototype.checkEdges = function() {
   if (this.position.x > width+100) {
@@ -410,7 +414,7 @@ var EcoSystem = function() {
     this.fishes = [];
 };
 
-EcoSystem.prototype.addFish = function(fish) {
+EcoSystem.prototype.addMover = function(fish) {
     this.particles.push(fish);
 };
 
@@ -424,18 +428,23 @@ EcoSystem.prototype.run = function() {
 EcoSystem.prototype.nominateLeader = function() {
     if (this.fishes.length > 0) {
         this.leader = this.fishes[0];
-        this.leader.color = color(255, 0, 0);
+      //  this.leader.color = color(255, 0, 0);
     } else {
         this.leader = null;
     }
+   // println("leader is "+this.leader);
 };
 
 EcoSystem.prototype.populate = function(fishCount, goldfishCount) {
+ 
+
     for (var i = 0; i < fishCount; i++) {
         this.fishes.push(new Fish(i));
     }
     // nominate a leader for the other fish to follow
     this.nominateLeader();
+  //  println("the leader is "+this.leader.id);
+    
     for (var i=0; i<goldfishCount; i++) {
         this.fishes.push(new Goldfish());
     }
@@ -451,12 +460,14 @@ EcoSystem.prototype.speedUp = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].speedUp();
     }
+    this.leader.speedUp();
 };
 
 EcoSystem.prototype.slowDown = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].slowDown();
     }
+    this.leader.slowDown();
 };
 
 EcoSystem.prototype.turnLeft = function() {

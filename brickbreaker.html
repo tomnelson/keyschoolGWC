@@ -30,12 +30,8 @@
             return processing.loadImage(url);
         }
 
-        // use degrees rather than radians in rotate function
         var rotate = processing.rotate;
-      //  processing.rotate = function (angle) {
-      //      rotate(processing.radians(angle));
-      //  };
-
+ 
         with (processing) {
              
 var whack = new buzz.sound( "whack", {
@@ -77,7 +73,6 @@ var Brick = function(x,y,w,h) {
      new PVector(this.w-this.bev, this.h-this.bev),
      new PVector(this.w-this.bev, this.bev)
     ];
-   // println("locs:"+this.locs);
 };
 Brick.prototype.bevel = function(p1, p2, p3, p4) {
      var a = this.locs[p1];
