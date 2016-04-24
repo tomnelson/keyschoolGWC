@@ -12,10 +12,8 @@
     var canvas = document.getElementById("canvas");
     var processing = new Processing(canvas, function(processing) {
 
-       /* @pjs preload="x-wing.gif,tie-fighter.jpg"; */
-        var xwingImage = processing.loadImage("x-wing.gif");
-        var tieFighterImage = processing.loadImage("tie-fighter.jpg");
 
+      /* @pjs preload="x-wing.gif,tie-fighter.jpg"; */
         processing.size(600, 600);
         processing.background(0xFFF);
 
@@ -27,8 +25,12 @@
         processing.keyPressed = function () { keyIsPressed = true; };
         processing.keyReleased = function () { keyIsPressed = false; };
 
-        function getImage(s) {
+        function getKAImage(s) {
             var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
+            processing.externals.sketch.imageCache.add(url);
+            return processing.loadImage(url);
+        }
+        function getImage(url) {
             processing.externals.sketch.imageCache.add(url);
             return processing.loadImage(url);
         }
@@ -138,8 +140,8 @@ TieFighter.prototype.checkEdges = function() {
   }
 };
 
-var xwing = new XWing(random(0,width),random(0,height), xwingImage);
-var fighter = new TieFighter(0, 0,tieFighterImage);
+var xwing = new XWing(random(0,width),random(0,height), getImage("x-wing.gif"));
+var fighter = new TieFighter(0, 0,getImage("tie-fighter.jpg"));
 
 var draw=function() {
     background(0,0,0);
