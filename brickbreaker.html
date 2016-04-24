@@ -234,29 +234,21 @@ Ball.prototype.print = function() {
 };
 Ball.prototype.wallBounce = function() {
     if(this.position.x >width - this.d/2 || this.position.x < this.d/2) {
-        this.velocity.x *= -1;
-        try {
-    //        playSound(getSound("rpg/hit-thud"));
-    thud.stop();
-    thud.play();
-        } catch (err) {}
+      this.velocity.x *= -1;
+      thud.stop();
+      thud.play();
     }
     if(this.position.y < this.d/2) {
         this.velocity.y *= -1;
-        try {
- //           playSound(getSound("rpg/hit-thud"));
- thud.play();
-        } catch (err) {}
+        thud.stop();
+        thud.play();
     }
     if(this.position.y > height) {
         this.ballCount--;
         this.position = new PVector(startX, startY);
         this.velocity = new PVector(random(-6,6), 6);
         if(this.ballCount <= 0) {
-            try {
-               // playSound(getSound("rpg/giant-no"));
-                no.play();
-            } catch (err) {}
+            no.play();
             gameOn = false;
         }
     } 
@@ -289,11 +281,8 @@ draw = function() {
             b.update();
             b.draw();
             if(b.hitBy(ball)) {
-                try {
-                   // playSound(getSound("rpg/metal-clink"));
-                   click.stop();
-                    click.play();
-                } catch (err) {}
+                click.stop();
+                click.play();
                 ball.velocity.y *= -1;
             }
             if (b.wallCheck()) {
@@ -320,14 +309,10 @@ draw = function() {
     paddle.draw();
     
     if(paddle.hit(ball)) {
-        try {
-          //  playSound(getSound("rpg/hit-whack"));
-            whack.play();
-        } catch (err) {}
+        whack.play();
         ball.velocity.y *= -1;
         ball.velocity.x += paddle.velocity.x;
         ball.velocity.x = min(3, max(-3, ball.velocity.x));
-        
     }
     if(gameOn === false) {
         text("Click to Play",width/2-35,height/2+50);   
