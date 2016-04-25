@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>XWing vs TieFighter</title>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
+</head>
+<body>
+  <h3>Use arrow keys to control xwing</h3>
+  <canvas id="canvas"></canvas>
+  <script>
+     /* @pjs preload="x-wing.gif,tie-fighter.jpg,blast.png"; */
+     var canvas = document.getElementById("canvas");
+    var processing = new Processing(canvas, function(processing) {
+
+      var xWingImage = processing.loadImage("x-wing.gif");
+      var tieFighterImage = processing.loadImage("tie-fighter.jpg");
+      var blast = processing.loadImage("blast.png")
+        processing.size(600, 600);
+        processing.background(0xFFF);
+
+        var mouseIsPressed = false;
+        processing.mousePressed = function () { mouseIsPressed = true; };
+        processing.mouseReleased = function () { mouseIsPressed = false; };
+
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+
+        function getImage(s) {
+            var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
+            processing.externals.sketch.imageCache.add(url);
+            return processing.loadImage(url);
+        }
+        var rotate = processing.rotate;
+        var image = processing.image;
+        var imageMode = processing.imageMode;
+
+        with (processing) {
+// all of the KA code is pasted inside the 'with' statement
+// 
+var Particle = function(position) {
+    this.acceleration = new PVector(0, -0.0);
+    this.position = position.get();
+ /*
+   
+    var sourceVelocity = velocity.get();
+    sourceVelocity.normalize();
+    sourceVelocity.mult(50);
+    this.velocity = sourceVelocity;
+    */
+  //  this.velocity.mult(50);
+    this.timeToLive = 100;
+};
+
+Particle.prototype.run = function() {
+    this.update();
+    this.display();
+};
+Particle.prototype.applyForce = function(force) {
+    this.acceleration.add(force);
+};
+Particle.prototype.update = function(){
+    this.velocity.add(this.acceleration);
+    this.position.add(this.velocity);
+    this.timeToLive -= 2;
+};
+
+Particle.prototype.display = function() {
+    //stroke(255, 255, 255, 100);
+   // strokeWeight(2);
+   /*
+    fill(255, 0, 0, 255);
+    var radius = map (this.timeToLive, 200, 0, 30, 10);
+    pushMatrix();
+    var angle = this.velocity.heading();
+    translate(this.position.x, this.position.y);
+    rotate(angle);
+    ellipse(0, 0, radius*10, radius/2);
+    popMatrix();
+        */
+};
+
+Particle.prototype.isDead = function() {
+   //  println("ttl:"+this.timeToLive);
+   if (this.timeToLive < 0) {
+        return true;
+    } else {
+        return false;
+    }
+};
+var Blast = function(position, velocity) {
+    Particle.call(this, position);
+    this.position = position.get();
+    var sourceVelocity = velocity.get();
+    sourceVelocity.normalize();
+    sourceVelocity.mult(50);
+    this.velocity = sourceVelocity;
+};
+Blast.prototype = Object.create(Particle.prototype);
+Blast.prototype.display = function() {
+    //stroke(255, 255, 255, 100);
+   // strokeWeight(2);
+    fill(255, 0, 0, 255);
+    var radius = map (this.timeToLive, 200, 0, 30, 10);
+    pushMatrix();
+    var angle = this.velocity.heading();
+    translate(this.position.x, this.position.y);
+    rotate(angle);
+    ellipse(0, 0, radius*10, radius/2);
+    popMatrix();
+};
+
+var Explosion = function(position, velocity) {
+    Particle.call(this, position);
+    this.position = position.get();
+    var sourceVelocity = velocity.get();
+    sourceVelocity.normalize();
+    sourceVelocity.mult(50);
+    this.velocity = sourceVelocity;
+    this.timeToLive = 400;
+};
+Explosion.prototype = Object.create(Particle.prototype);
+Explosion.prototype.display = function() {
+    stroke(255, 255, 255, 100);
+    strokeWeight(2);
+    fill(255, 0, 0, 255);
+    var radius = map (this.timeToLive, 400, 0, 100, 500);
+    pushMatrix();
+   // var angle = this.velocity.heading();
+    translate(this.position.x, this.position.y);
+   // rotate(angle);
+    ellipse(0, 0, radius, radius);
+    popMatrix();
+};
+
+
+var ParticleSystem = function(position, velocity) {
+    this.origin = position.get();
+    this.velocity = velocity.get();
+    this.particles = [];
+};
+
+ParticleSystem.prototype.addParticle = function(particle) {
+    this.particles.push(particle);
+ //   this.particles.push(new Particle(this.origin, this.velocity));
+};
+
+ParticleSystem.prototype.run = function() {
+    for (var i = this.particles.length-1; i >= 0; i--) {
+        var p = this.particles[i];
+        p.run();
+        if (p.isDead()) {
+            this.particles.splice(i, 1);
+        }
+    }
+};
+
+// 
+// base class for both ships
+var Mover = function(x, y) {
+    this.position = new PVector(x, y);
+    this.velocity = new PVector(0,0);
+    this.acceleration = new PVector(0,0);
+};
+Mover.prototype.action = function() {
+    this.update();
+    this.checkEdges();
+    this.draw();
+};
+Mover.prototype.draw = function() {
+   // println("draw");
+    pushMatrix();
+    translate(this.position.x,this.position.y);
+    rotate(PI/2+this.velocity.heading());
+ //   scale(this.scale.x, this.scale.y);
+ //   imageMode(CENTER);
+ //   image(this.image, 0,0);
+    fill(255,0,0);
+    ellipse(0,0,20,20);
+    popMatrix();
+};
+Mover.prototype.update = function() {
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(10);
+    this.position.add(this.velocity);
+    this.acceleration.mult(0);
+};
+Mover.prototype.applyForce = function(force) {
+    this.acceleration.add(force);
+};
+Mover.prototype.speedUp = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    if (dir.x === 0 && dir.y === 0) {
+        // kick off an initial velocity
+        dir.y = -0.1;
+    } else {
+        dir.mult(0.7);
+    }
+    this.applyForce(dir);
+};
+Mover.prototype.slowDown = function() {
+    var dir = new PVector(this.velocity.x, this.velocity.y);
+    dir.mult(-0.3);
+    this.applyForce(dir);
+    this.update();
+};
+Mover.prototype.turnLeft = function() {
+    this.velocity.rotate(-PI/30);
+};
+Mover.prototype.turnRight = function() {
+    this.velocity.rotate(PI/30);
+};
+Mover.prototype.checkEdges = function() {
+  if (this.position.x > width+100) {
+    this.position.x = -100;
+  }
+  else if (this.position.x < -100) {
+    this.position.x = width+100;
+  }
+  if (this.position.y > height+100) {
+    this.position.y = -100;
+  }
+  else if (this.position.y < -100) {
+    this.position.y = height+100;
+  }
+};
+/*
+var Blaster = function(x, y) {
+    Mover.call(this, x, y);
+};
+Blaster.prototype = Object.create(Mover.prototype);
+Blaster.prototype.draw = function() {
+    if(this.velocity.mag() > 0) {
+        println("velocity has mag:"+this.velocity.mag());
+        Mover.prototype.draw.call(this);
+   // } else {
+       // println("velocity zero");
+    }
+};
+*/
+
+var XWing = function(x, y, image) {
+    Mover.call(this, x, y);
+    this.image = image;
+    this.scale = new PVector(0.5, 0.5);
+    this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
+
+    this.applyForce(new PVector(0,-1));
+};
+XWing.prototype = Object.create(Mover.prototype);
+XWing.prototype.constructor = XWing;
+XWing.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x,this.position.y);
+    rotate(PI/2+this.velocity.heading());
+    scale(this.scale.x, this.scale.y);
+    imageMode(CENTER);
+    image(this.image, 0,0);
+    popMatrix();
+};
+XWing.prototype.update = function() {
+    Mover.prototype.update.call(this);
+    this.blaster.run();
+};
+XWing.prototype.fireBlaster = function() {
+  //  println("there are "+this.blaster.particles.length);
+    this.blaster.origin.set(this.position.get());
+    this.blaster.velocity.set(this.velocity.get());
+    this.blaster.addParticle(new Blast(this.position, this.velocity));
+};
+
+var TieFighter = function(x, y, image) {
+    Mover.call(this, x, y);
+    this.image = image;
+    this.boom = new ParticleSystem(this.position.get(), this.velocity.get());
+
+    this.initialize();
+};
+TieFighter.prototype = Object.create(Mover.prototype);
+TieFighter.prototype.constructor = TieFighter;
+TieFighter.prototype.initialize = function() {
+    this.position = new PVector(random(0, width), -100);
+    this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
+ //this.position = new PVector(100,100);
+ //this.velocity = new PVector(0,0);
+};
+TieFighter.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x,this.position.y);
+    rotate(PI/2+this.velocity.heading());
+  //  scale(this.scale.x, this.scale.y);
+    imageMode(CENTER);
+    image(this.image, 0,0);
+    popMatrix();
+};
+TieFighter.prototype.update = function() {
+    Mover.prototype.update.call(this);
+    for (var i=0; i<xwing.blaster.particles.length; i++) {
+        this.hitBy(xwing.blaster.particles[i]);
+    }
+        this.boom.run();
+};
+
+TieFighter.prototype.hitBy = function(particle) {
+    if(particle) {
+        var bounds = {
+            left : (this.position.x - 20),
+            right : (this.position.x + 20),
+            top : (this.position.y - 20),
+            bottom : (this.position.y + 20)
+        };
+    //    println("parcticle:"+particle.position);
+ /*   println("hitby "+bounds.left+":"+bounds.right+":"+bounds.top+":"+bounds.bottom);
+       if (bounds.left < particle.position.x) {
+            println("1");
+            if(particle.position.x < bounds.right) {
+                println("2");
+                if (bounds.top < particle.position.y) {
+                    println("3");
+                    if(particle.position.y < bounds.bottom) {
+                        println("4");
+                    }
+                }
+            }
+        }
+        */
+         if (bounds.left < particle.position.x && particle.position.x < bounds.right && bounds.top < particle.position.y && particle.position.y < bounds.bottom) {
+           // this.image = blast;
+            this.velocity.mult(0);
+     this.boom.origin.set(this.position.get());
+    //this.boom.velocity.set(this.velocity.get());
+    this.boom.addParticle(new Explosion(this.position, this.velocity));
+ //   println("hitby "+bounds.left+":"+bounds.right+":"+bounds.top+":"+bounds.bottom);
+    if (fighters.length > 0) {
+        fighters.splice(0,1);
+    }
+       }
+    }
+    
+};
+
+TieFighter.prototype.checkEdges = function() {
+  if (this.position.x > width+100) {
+      this.initialize();
+  }
+  else if (this.position.x < -100) {
+      this.initialize();
+  }
+  if (this.position.y > height+100) {
+      this.initialize();
+  }
+  else if (this.position.y < -100) {
+//    no op
+  }
+};
+var fighters = [];
+for (var i=0; i<10; i++) {
+    fighters.push(new TieFighter(0, 0, tieFighterImage))
+}
+var xwing = new XWing(random(0,width),random(0,height), xWingImage);
+//var fighter = new TieFighter(0, 0, tieFighterImage);
+
+var draw=function() {
+    background(0,0,0);
+    xwing.action();
+    if (fighters.length > 0) {
+        fighters[0].action();
+    }
+   
+};
+keyPressed = function() {
+    if (keyCode === RIGHT) {
+        xwing.turnRight();
+    } else if (keyCode === LEFT) {
+        xwing.turnLeft();
+    } else if (keyCode === UP) {
+        xwing.speedUp();
+    } else if (keyCode === DOWN) {
+        xwing.slowDown();
+    } else if (keyCode === 32 || keyCode === 83 || keyCode === 70) {
+        //var blaster = new Blaster(100,100);
+        xwing.fireBlaster();
+    } else {
+        println("keycode:"+keyCode);
+    }
+    
+};
+
+// end of pasted-in KA code
+       }
+        if (typeof draw !== 'undefined') processing.draw = draw;
+    });
+  </script>
+</body>
+</html>
