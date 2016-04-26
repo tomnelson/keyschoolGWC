@@ -91,7 +91,7 @@ Particle.prototype.run = function() {
     this.display();
 };
 
-Particle.prototype.update = function(){
+Particle.prototype.update = function() {
     this.velocity.add(this.acceleration);
     this.position.add(this.velocity);
     this.timeToLive -= 2;

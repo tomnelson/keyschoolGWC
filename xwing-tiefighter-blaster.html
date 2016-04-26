@@ -34,10 +34,31 @@
         var rotate = processing.rotate;
         var image = processing.image;
         var imageMode = processing.imageMode;
+        var translate = processing.translate;
 
         with (processing) {
 // all of the KA code is pasted inside the 'with' statement
 // 
+var Star = function(x,y) {
+    this.x = random(0,width);
+    this.y = random(0,height);
+    this.start = random(0,255);
+};
+Star.prototype.draw = function() {
+    stroke(255,255,255,100+(this.start+processing.frameCount)%255);
+    point(this.x, this.y);
+};
+var Stars = function() {
+    this.stars = [];
+    for (var i=0; i<200; i++) {
+        this.stars.push(new Star());
+    }
+};
+Stars.prototype.draw = function() {
+    for (var i=0; i<this.stars.length; i++) {
+        this.stars[i].draw();
+    }
+};
 var Particle = function(position) {
     this.acceleration = new PVector(0, -0.0);
     this.position = position.get();
@@ -359,9 +380,11 @@ for (var i=0; i<10; i++) {
 }
 var xwing = new XWing(random(0,width),random(0,height), xWingImage);
 //var fighter = new TieFighter(0, 0, tieFighterImage);
+var stars = new Stars();
 
 var draw=function() {
     background(0,0,0);
+    stars.draw();
     xwing.action();
     if (fighters.length > 0) {
         fighters[0].action();
