@@ -15,7 +15,7 @@
       var xWingImage = processing.loadImage("x-wing.gif");
       var tieFighterImage = processing.loadImage("tie-fighter.jpg");
       var blast = processing.loadImage("blast.png")
-        processing.size(600, 600);
+        processing.size(700,700);
         processing.background(0xFFF);
 
         var mouseIsPressed = false;
@@ -214,13 +214,13 @@ Mover.prototype.speedUp = function() {
         // kick off an initial velocity
         dir.y = -0.1;
     } else {
-        dir.mult(0.7);
+        dir.mult(1.7);
     }
     this.applyForce(dir);
 };
 Mover.prototype.slowDown = function() {
     var dir = new PVector(this.velocity.x, this.velocity.y);
-    dir.mult(-0.3);
+    dir.mult(-0.7);
     this.applyForce(dir);
     this.update();
 };
@@ -264,7 +264,7 @@ XWing.prototype.draw = function() {
     imageMode(CENTER);
     image(this.image, 0,0);
     popMatrix();
-    var test = new Test(this.position.get(), this.velocity.get(), new PVector(10, 35));
+   // var test = new Test(this.position.get(), this.velocity.get(), new PVector(10, 35));
    // test.draw();
 };
 XWing.prototype.update = function() {
@@ -283,6 +283,7 @@ var TieFighter = function(x, y, image) {
     Mover.call(this, x, y);
     this.image = image;
     this.boom = new ParticleSystem(this.position.get(), this.velocity.get());
+    this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
 
     this.initialize();
 };
@@ -305,6 +306,12 @@ TieFighter.prototype.update = function() {
     for (var i=0; i<xwing.blaster.particles.length; i++) {
         this.hitBy(xwing.blaster.particles[i]);
     }
+    if (this.position.y > height/4 && this.blaster.particles.length === 0) {
+        var dir = xwing.position.get();
+        dir.sub(this.position);
+        this.blaster.addParticle(new Blast(this.position.get(), dir, new PVector(0,0)));
+    }
+    this.blaster.run();
     this.boom.run();
 };
 
