@@ -62,14 +62,6 @@ Stars.prototype.draw = function() {
 var Particle = function(position) {
     this.acceleration = new PVector(0, -0.0);
     this.position = position.get();
- /*
-   
-    var sourceVelocity = velocity.get();
-    sourceVelocity.normalize();
-    sourceVelocity.mult(50);
-    this.velocity = sourceVelocity;
-    */
-  //  this.velocity.mult(50);
     this.timeToLive = 100;
 };
 
@@ -87,18 +79,6 @@ Particle.prototype.update = function(){
 };
 
 Particle.prototype.display = function() {
-    //stroke(255, 255, 255, 100);
-   // strokeWeight(2);
-   /*
-    fill(255, 0, 0, 255);
-    var radius = map (this.timeToLive, 200, 0, 30, 10);
-    pushMatrix();
-    var angle = this.velocity.heading();
-    translate(this.position.x, this.position.y);
-    rotate(angle);
-    ellipse(0, 0, radius*10, radius/2);
-    popMatrix();
-        */
 };
 
 Particle.prototype.isDead = function() {
@@ -109,26 +89,48 @@ Particle.prototype.isDead = function() {
         return false;
     }
 };
-var Blast = function(position, velocity) {
+var Test = function(position, velocity, offset) {
+    this.position = //position;
+            PVector.add(position, offset);
+    this.velocity = velocity;
+    this.offset = offset;
+};
+Test.prototype.draw = function() {
+    noStroke();
+    fill(255, 0, 0, 255);
+    var radius = 20;
+    pushMatrix();
+    var angle = this.velocity.heading();
+    translate(this.position.x-this.offset.x, this.position.y-this.offset.y);
+    rotate(angle);
+    //translate(this.offset.x, this.offset.y);
+    ellipse(this.offset.x, this.offset.y, radius*5, radius/2);
+    popMatrix();
+};
+
+var Blast = function(position, velocity, offset) {
     Particle.call(this, position);
-    this.position = position.get();
-    var sourceVelocity = velocity.get();
+    this.position = PVector.add(position, offset);
+            //position.get();
+    var sourceVelocity = velocity;
     sourceVelocity.normalize();
     sourceVelocity.mult(50);
     this.velocity = sourceVelocity;
+    this.offset = offset;
 };
 Blast.prototype = Object.create(Particle.prototype);
 Blast.prototype.display = function() {
-    //stroke(255, 255, 255, 100);
-   // strokeWeight(2);
-   noStroke();
+    noStroke();
     fill(255, 0, 0, 255);
     var radius = map (this.timeToLive, 200, 0, 30, 10);
+//    var rotateCenter = this.position.get();
+//    rotateCenter.add(this.offset);
     pushMatrix();
     var angle = this.velocity.heading();
-    translate(this.position.x, this.position.y);
+    translate(this.position.x-this.offset.x, this.position.y-this.offset.y);
     rotate(angle);
-    ellipse(0, 0, radius*5, radius/2);
+    //translate(this.offset.x, this.offset.y);
+    ellipse(this.offset.x, this.offset.y, radius*5, radius/2);
     popMatrix();
 };
 
@@ -190,13 +192,9 @@ Mover.prototype.action = function() {
     this.draw();
 };
 Mover.prototype.draw = function() {
-   // println("draw");
     pushMatrix();
     translate(this.position.x,this.position.y);
     rotate(PI/2+this.velocity.heading());
- //   scale(this.scale.x, this.scale.y);
- //   imageMode(CENTER);
- //   image(this.image, 0,0);
     fill(255,0,0);
     ellipse(0,0,20,20);
     popMatrix();
@@ -246,28 +244,15 @@ Mover.prototype.checkEdges = function() {
     this.position.y = height+100;
   }
 };
-/*
-var Blaster = function(x, y) {
-    Mover.call(this, x, y);
-};
-Blaster.prototype = Object.create(Mover.prototype);
-Blaster.prototype.draw = function() {
-    if(this.velocity.mag() > 0) {
-        println("velocity has mag:"+this.velocity.mag());
-        Mover.prototype.draw.call(this);
-   // } else {
-       // println("velocity zero");
-    }
-};
-*/
 
 var XWing = function(x, y, image) {
     Mover.call(this, x, y);
     this.image = image;
     this.scale = new PVector(0.5, 0.5);
     this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
-
     this.applyForce(new PVector(0,-1));
+    this.leftBlasterOffset = new PVector(10, -35);
+    this.rightBlasterOffset = new PVector(10, 35);
 };
 XWing.prototype = Object.create(Mover.prototype);
 XWing.prototype.constructor = XWing;
@@ -279,6 +264,8 @@ XWing.prototype.draw = function() {
     imageMode(CENTER);
     image(this.image, 0,0);
     popMatrix();
+    var test = new Test(this.position.get(), this.velocity.get(), new PVector(10, 35));
+   // test.draw();
 };
 XWing.prototype.update = function() {
     Mover.prototype.update.call(this);
@@ -288,7 +275,8 @@ XWing.prototype.fireBlaster = function() {
   //  println("there are "+this.blaster.particles.length);
     this.blaster.origin.set(this.position.get());
     this.blaster.velocity.set(this.velocity.get());
-    this.blaster.addParticle(new Blast(this.position, this.velocity));
+    this.blaster.addParticle(new Blast(this.position.get(), this.velocity.get(), this.leftBlasterOffset));
+    this.blaster.addParticle(new Blast(this.position.get(), this.velocity.get(), this.rightBlasterOffset));
 };
 
 var TieFighter = function(x, y, image) {
@@ -303,14 +291,11 @@ TieFighter.prototype.constructor = TieFighter;
 TieFighter.prototype.initialize = function() {
     this.position = new PVector(random(0, width), -100);
     this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
- //this.position = new PVector(100,100);
- //this.velocity = new PVector(0,0);
 };
 TieFighter.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x,this.position.y);
     rotate(PI/2+this.velocity.heading());
-  //  scale(this.scale.x, this.scale.y);
     imageMode(CENTER);
     image(this.image, 0,0);
     popMatrix();
@@ -320,7 +305,7 @@ TieFighter.prototype.update = function() {
     for (var i=0; i<xwing.blaster.particles.length; i++) {
         this.hitBy(xwing.blaster.particles[i]);
     }
-        this.boom.run();
+    this.boom.run();
 };
 
 TieFighter.prototype.hitBy = function(particle) {
@@ -331,34 +316,15 @@ TieFighter.prototype.hitBy = function(particle) {
             top : (this.position.y - 20),
             bottom : (this.position.y + 20)
         };
-    //    println("parcticle:"+particle.position);
- /*   println("hitby "+bounds.left+":"+bounds.right+":"+bounds.top+":"+bounds.bottom);
-       if (bounds.left < particle.position.x) {
-            println("1");
-            if(particle.position.x < bounds.right) {
-                println("2");
-                if (bounds.top < particle.position.y) {
-                    println("3");
-                    if(particle.position.y < bounds.bottom) {
-                        println("4");
-                    }
-                }
+        if (bounds.left < particle.position.x && particle.position.x < bounds.right && bounds.top < particle.position.y && particle.position.y < bounds.bottom) {
+            this.velocity.mult(0);
+            this.boom.origin.set(this.position.get());
+            this.boom.addParticle(new Explosion(this.position, this.velocity));
+            if (fighters.length > 0) {
+                fighters.splice(0,1);
             }
         }
-        */
-         if (bounds.left < particle.position.x && particle.position.x < bounds.right && bounds.top < particle.position.y && particle.position.y < bounds.bottom) {
-           // this.image = blast;
-            this.velocity.mult(0);
-     this.boom.origin.set(this.position.get());
-    //this.boom.velocity.set(this.velocity.get());
-    this.boom.addParticle(new Explosion(this.position, this.velocity));
- //   println("hitby "+bounds.left+":"+bounds.right+":"+bounds.top+":"+bounds.bottom);
-    if (fighters.length > 0) {
-        fighters.splice(0,1);
     }
-       }
-    }
-    
 };
 
 TieFighter.prototype.checkEdges = function() {
@@ -380,7 +346,7 @@ for (var i=0; i<10; i++) {
     fighters.push(new TieFighter(0, 0, tieFighterImage))
 }
 var xwing = new XWing(random(0,width),random(0,height), xWingImage);
-//var fighter = new TieFighter(0, 0, tieFighterImage);
+
 var stars = new Stars();
 
 var draw=function() {
