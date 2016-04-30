@@ -375,7 +375,24 @@
                         this.position.x = mouseX;
                         this.blaster.run();
                     };
-                    XWing.prototype.fireBlaster = function () {
+                    XWing.prototype.hitBy = function(particle) {
+                        if (particle) {
+                            var bounds = {
+                                left: (this.position.x - 20),
+                                right: (this.position.x + 20),
+                                top: (this.position.y - 20),
+                                bottom: (this.position.y + 20)
+                            };
+                            if (bounds.left < particle.position.x && particle.position.x < bounds.right && bounds.top < particle.position.y && particle.position.y < bounds.bottom) {
+                                //this.velocity.mult(0);
+                                //            this.boom.origin.set(this.position.get());
+                                //            this.boom.addParticle(new Explosion(this.position, this.velocity));
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+                   XWing.prototype.fireBlaster = function () {
                         //  println("there are "+this.blaster.particles.length);
                         this.blaster.origin.set(this.position.get());
                         this.blaster.velocity.set(this.velocity.get());
@@ -428,7 +445,7 @@
                         //  this.boom.run();
                     };
 
-                    TieFighter.prototype.hitBy = function (particle) {
+                    TieFighter.prototype.hitBy = function(particle) {
                         if (particle) {
                             var bounds = {
                                 left: (this.position.x - 20),
@@ -494,6 +511,12 @@
                                     this.fighters.splice(0, 1);
                                 }
 
+                            }
+                        }
+                        for (var i=0; this.fighters.length > 0 && i<this.fighters[0].blaster.particles.length; i++) {
+                            if (this.xwing.hitBy(this.fighters[0].blaster.particles[i])) {
+                                //this.xwing
+                                this.explosions.addParticle(new Explosion(this.xwing.position, new PVector(0,0)));
                             }
                         }
                         this.explosions.run();
