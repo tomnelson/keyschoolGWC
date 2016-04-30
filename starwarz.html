@@ -245,7 +245,7 @@
                     var Star = function (x, y) {
                         Mover.call(this, x, y);
                         //    this.position = new PVector(random(0,width),random(0,height));
-                        this.velocity = new PVector(0, 0.1);
+                        this.velocity = new PVector(0, 0.5);
                         this.start = random(0, 255);
                     };
                     Star.prototype = Object.create(Mover.prototype);
@@ -471,6 +471,11 @@
 
 
                     };
+                    Game.prototype.moreFighters = function() {
+                        for (var i = 0; i < 10; i++) {
+                            this.fighters.push(new TieFighter(0, 0, tieFighterImage, this.xwing));
+                        }
+                   };
 
                     Game.prototype.draw = function () {
                         this.stars.update();
@@ -543,12 +548,13 @@
                         } else if (keyCode === 32 || keyCode === 83 || keyCode === 70) {
                             //var blaster = new Blaster(100,100);
                             game.fireBlaster();
+                        } else if (keyCode === 78) {
+                            game.moreFighters();
                         } else {
                             //println("keycode:"+keyCode);
                         }
                     };
-
-                    // end of pasted-in KA code
+                     // end of pasted-in KA code
                 }
                 if (typeof draw !== 'undefined')
                     processing.draw = draw;
