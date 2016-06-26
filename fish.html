@@ -208,6 +208,21 @@ Fish.prototype.calculateAttraction = function(m, i) {
     var force = PVector.sub(this.position, m.position);
     // Distance between objects
     var distance = force.mag();
+    // Distance between objects
+    var distance = force.mag();
+    
+    var wrappedPosition = PVector.add(this.position, new PVector(0, height));
+    var force2 = PVector.sub(wrappedPosition, m.position);
+    var distance2 = force2.mag();
+    
+    if (distance2 < distance) {
+        
+        distance = distance2;
+        force = force2;
+    }
+
+    
+
     // Limiting the distance to eliminate "extreme" results for very close or very far objects
     distance = constrain(distance, 5.0, 10.0);
     // Normalize vector (distance doesn't matter here, we just want this vector for direction
