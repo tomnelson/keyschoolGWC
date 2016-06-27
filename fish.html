@@ -132,7 +132,7 @@ ParticleSystem.prototype.run = function() {
     }
 };
 
-var Fish = function(id) {
+var Fish = function() {
   this.position = new PVector(random(width), random(height));
   this.velocity = new PVector(0, 0);
   this.acceleration = new PVector(0, 0);
@@ -140,7 +140,7 @@ var Fish = function(id) {
   this.color = color(223, 230, 83);
   this.followSpeed = FOLLOW_SPEED_LIMIT;
   this.mass = 0.5;
-  this.id = id;
+  this.edge = 50;
 };
 
 // follow the leader!
@@ -184,17 +184,17 @@ Fish.prototype.draw = function() {
 };
 
 Fish.prototype.checkEdges = function() {
-  if (this.position.x > width+100) {
-    this.position.x = -100;
+  if (this.position.x > width+this.edge) {
+    this.position.x = -this.edge;
   }
-  else if (this.position.x < -100) {
-    this.position.x = width+100;
+  else if (this.position.x < -this.edge) {
+    this.position.x = width+this.edge;
   }
-  if (this.position.y > height+100) {
-    this.position.y = -100;
+  if (this.position.y > height+this.edge) {
+    this.position.y = -this.edge;
   }
-  else if (this.position.y < -100) {
-    this.position.y = height+100;
+  else if (this.position.y < -this.edge) {
+    this.position.y = height+this.edge;
   }
 };
 
@@ -295,6 +295,7 @@ var Goldfish = function() {
     
     this.bubbles = new ParticleSystem(this.getMouthPosition());
     this.timerOffset = Math.floor(random(0, 1000));
+    this.edge = 100;
 };
 
 Goldfish.prototype = Object.create(Fish.prototype);
@@ -327,7 +328,7 @@ Goldfish.prototype.turnLeft = function() {
 Goldfish.prototype.turnRight = function() {
     this.velocity.rotate(PI/90);
 };
-
+/*
 Goldfish.prototype.checkEdges = function() {
   if (this.position.x > width+100) {
     this.position.x = -100;
@@ -342,7 +343,7 @@ Goldfish.prototype.checkEdges = function() {
     this.position.y = height+100;
   }
 };
-
+*/
 Goldfish.prototype.update = function() {
     this.velocity.add(this.acceleration);
     this.velocity.limit(5);
