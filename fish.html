@@ -184,17 +184,17 @@ Fish.prototype.draw = function() {
 };
 
 Fish.prototype.checkEdges = function() {
-  if (this.position.x > width+100) {
-    this.position.x = -100;
+  if (this.position.x > width+10) {
+    this.position.x = -10;
   }
-  else if (this.position.x < -100) {
-    this.position.x = width+100;
+  else if (this.position.x < -10) {
+    this.position.x = width+10;
   }
-  if (this.position.y > height+100) {
-    this.position.y = -100;
+  if (this.position.y > height+10) {
+    this.position.y = -10;
   }
-  else if (this.position.y < -100) {
-    this.position.y = height+100;
+  else if (this.position.y < -10) {
+    this.position.y = height+10;
   }
 };
 
@@ -203,23 +203,48 @@ Fish.prototype.applyForce = function(force) {
     this.acceleration.add(f);
 };
 
-Fish.prototype.calculateAttraction = function(m, i) {
-    // Calculate direction of force
-    var force = PVector.sub(this.position, m.position);
-    // Distance between objects
-    var distance = force.mag();
-    // Distance between objects
-    var distance = force.mag();
-    
-    var wrappedPosition = PVector.add(this.position, new PVector(0, height));
-    var force2 = PVector.sub(wrappedPosition, m.position);
-    var distance2 = force2.mag();
-    
-    if (distance2 < distance) {
-        
-        distance = distance2;
-        force = force2;
+Fish.prototype.closestWrappedPosition = function(m) {
+    var dy1 = Math.abs(m.position.y - this.position.y);
+    var dy2 = Math.abs(m.position.y - (this.position.y + height));
+    var y = this.position.y;
+    if (dy2 < dy1) {
+        y = this.position.y + height;
     }
+    
+    var dx1 = Math.abs(m.position.x - this.position.x);
+    var dx2 = Math.abs(m.position.x - (this.position.x - width));
+    var dx3 = Math.abs(m.position.x - (this.position.x + width));
+    var dx = Math.min(dx1, Math.min(dx2, dx3));
+    var x = this.position.x;
+    if (dx === dx2) {
+        x = this.position.x - width;
+    } else if (dx === dx3) {
+        x = this.position.x + width;
+    }
+
+ //   var x = Math.min(x1, Math.min(x2, x3));
+    return new PVector(x, y);
+};
+
+Fish.prototype.calculateAttraction = function(m) {
+    // Calculate direction of force
+    var pos = this.closestWrappedPosition(m);
+   // pos = this.position;
+    var force = PVector.sub(m.position, pos);
+    // Distance between objects
+    var distance = force.mag();
+    // Distance between objects
+    var distance = force.mag();
+    
+//    var wrappedPosition = PVector.add(this.position, new PVector(0, height));
+//    var force2 = PVector.sub(wrappedPosition, m.position);
+//    var distance2 = force2.mag();
+//    
+//    if (distance2 < distance) {
+//        
+//        distance = distance2;
+//        force = force2;
+//    }
 
     
 
@@ -228,7 +253,7 @@ Fish.prototype.calculateAttraction = function(m, i) {
     // Normalize vector (distance doesn't matter here, we just want this vector for direction
     force.normalize();
     // Calculate gravitional force magnitude
-    var strength = (-G * this.mass * m.mass) / (distance * distance);
+    var strength = (G * this.mass * m.mass) / (distance * distance);
     // Get force vector --> magnitude * direction
     force.mult(strength);
     return force;
