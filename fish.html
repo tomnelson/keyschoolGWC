@@ -205,9 +205,13 @@ Fish.prototype.applyForce = function(force) {
 
 Fish.prototype.closestWrappedPosition = function(m) {
     var dy1 = Math.abs(m.position.y - this.position.y);
-    var dy2 = Math.abs(m.position.y - (this.position.y + height));
+    var dy2 = Math.abs(m.position.y - (this.position.y - height));
+    var dy3 = Math.abs(m.position.y - (this.position.y + height));
+    var dy = Math.min(dy1, Math.min(dy2, dy3));
     var y = this.position.y;
-    if (dy2 < dy1) {
+    if (dy === dy2) {
+        y = this.position.y - height;
+    } else if (dy === dy3) {
         y = this.position.y + height;
     }
     
