@@ -132,12 +132,12 @@ ParticleSystem.prototype.run = function() {
     }
 };
 
-var Fish = function() {
+var Fish = function(color) {
   this.position = new PVector(random(width), random(height));
   this.velocity = new PVector(0, 0);
   this.acceleration = new PVector(0, 0);
   this.angle = 0;
-  this.color = color(223, 230, 83);
+  this.color = color;
   this.followSpeed = FOLLOW_SPEED_LIMIT;
   this.mass = 0.5;
   this.edge = 50;
@@ -451,22 +451,23 @@ Goldfish.prototype.draw = function() {
     popMatrix();
 };
 
-var EcoSystem = function() {
+
+var School = function() {
     this.fishes = [];
 };
 
-EcoSystem.prototype.addFish = function(fish) {
-    this.particles.push(fish);
+School.prototype.addFish = function(fish) {
+    this.fishes.push(fish);
 };
 
-EcoSystem.prototype.run = function() {
+School.prototype.run = function() {
     for (var i = 0; i<this.fishes.length; i++) {
         var fish = this.fishes[i];
         fish.swim(this.leader);
     }
 };
 
-EcoSystem.prototype.nominateLeader = function() {
+School.prototype.nominateLeader = function() {
     if (this.fishes.length > 0) {
         this.leader = this.fishes[0];
        // this.leader.color = color(255, 0, 0);
@@ -475,51 +476,125 @@ EcoSystem.prototype.nominateLeader = function() {
     }
 };
 
-EcoSystem.prototype.populate = function(fishCount, goldfishCount) {
-    for (var i = 0; i < fishCount; i++) {
-        this.fishes.push(new Fish(i));
-    }
+School.prototype.populate = function(fishes) {
+    this.fishes = fishes;
+//    for (var i = 0; i < fishCount; i++) {
+//        this.fishes.push(new Fish(color));
+//    }
     // nominate a leader for the other fish to follow
     this.nominateLeader();
-    for (var i=0; i<goldfishCount; i++) {
-        this.fishes.push(new Goldfish());
-    }
 };
 
-EcoSystem.prototype.swim = function() {
+School.prototype.swim = function() {
     for (var i = 0; i < this.fishes.length; i++) {
         this.fishes[i].swim(this.leader);
     }
 };
 
-EcoSystem.prototype.speedUp = function() {
+School.prototype.speedUp = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].speedUp();
     }
 };
 
-EcoSystem.prototype.slowDown = function() {
+School.prototype.slowDown = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].slowDown();
     }
 };
 
-EcoSystem.prototype.turnLeft = function() {
+School.prototype.turnLeft = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].turnLeft();
     }
-    this.leader.turnLeft();
+    //this.leader.turnLeft();
 };
 
-EcoSystem.prototype.turnRight = function() {
+School.prototype.turnRight = function() {
     for (var i=0; i<this.fishes.length; i++) {
         this.fishes[i].turnRight();
     }
-    this.leader.turnRight();
+    //this.leader.turnRight();
+};
+
+var schoolOne = new School();
+for (var i=0; i<FISH_COUNT; i++) {
+    schoolOne.addFish(new Fish(color(223, 230, 83)))
+};
+schoolOne.nominateLeader();
+
+var schoolTwo = new School();
+for (var i=0; i<FISH_COUNT; i++) {
+    schoolTwo.addFish(new Fish(color(255, 150, 150)))
+}
+schoolTwo.nominateLeader();
+
+var schoolFour = new School();
+for (var i=0; i<FISH_COUNT; i++) {
+    schoolFour.addFish(new Fish(color(150, 150, 255)))
+}
+schoolFour.nominateLeader();
+
+
+var schoolThree = new School();
+for (var i=0; i<GOLDFISH_COUNT; i++) {
+    schoolThree.addFish(new Goldfish());
+}
+
+var EcoSystem = function() {
+    this.schools = [];
+};
+
+EcoSystem.prototype.addSchool = function(school) {
+    this.schools.push(school);
+};
+
+EcoSystem.prototype.run = function() {
+    for (var i = 0; i<this.schools.length; i++) {
+        var school = this.schools[i];
+        school.swim();
+    }
+};
+
+EcoSystem.prototype.swim = function() {
+    for (var i = 0; i < this.schools.length; i++) {
+        this.schools[i].swim();
+    }
+};
+
+EcoSystem.prototype.speedUp = function() {
+    for (var i=0; i<this.schools.length; i++) {
+        this.schools[i].speedUp();
+    }
+};
+
+EcoSystem.prototype.slowDown = function() {
+    for (var i=0; i<this.schools.length; i++) {
+        this.schools[i].slowDown();
+    }
+};
+
+EcoSystem.prototype.turnLeft = function() {
+    for (var i=0; i<this.schools.length; i++) {
+        this.schools[i].turnLeft();
+    }
+    //this.leader.turnLeft();
+};
+
+EcoSystem.prototype.turnRight = function() {
+    for (var i=0; i<this.schools.length; i++) {
+        this.schools[i].turnRight();
+    }
+    //this.leader.turnRight();
 };
 
 var ecoSystem = new EcoSystem();
-ecoSystem.populate(FISH_COUNT, GOLDFISH_COUNT);
+ecoSystem.addSchool(schoolOne);
+ecoSystem.addSchool(schoolTwo);
+ecoSystem.addSchool(schoolThree);
+ecoSystem.addSchool(schoolFour);
+
+//ecoSystem.populate(FISH_COUNT, GOLDFISH_COUNT);
 
 var draw = function() {
     background(177, 225, 230);
