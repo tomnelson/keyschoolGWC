@@ -61,6 +61,7 @@ var Mover = function(idx) {
     mouseY = 0;
     this.idx = idx;
     this.color = colors[idx%colors.length];
+    this.lastCollision = -1;
 };
 
 Mover.prototype.update = function() {
@@ -143,15 +144,21 @@ var transferVelocity = function(m, n) {
 };
 var checkCollisions = function() {
     for (var i=0; i<movers.length; i++) {
+        var lastCollision = -1;
         for (var j=i+1; j<movers.length; j++) {
-            if (i === j) {
-                continue;
-            }
             if(PVector.sub(movers[i].position,movers[j].position).mag() < 
                                         movers[i].d) {
-                collide(movers[i], movers[j]);
+                // there's a collision, make sure it's not the same one we just did
+                lastCollision = j;
+                if (movers[i].collisionIndex !== j) {
+                    collide(movers[i], movers[j]);
+                } else {
+                    println("already got "+i+" and "+j);
+                }
+                break;
             }
         }
+        movers[i].lastCollision = lastCollision;
     }
 };
 draw = function() {
