@@ -144,13 +144,13 @@ var transferVelocity = function(m, n) {
 };
 var checkCollisions = function() {
     for (var i=0; i<movers.length; i++) {
-        var lastCollision = -1;
+        var last = -1;
         for (var j=i+1; j<movers.length; j++) {
             if(PVector.sub(movers[i].position,movers[j].position).mag() < 
                                         movers[i].d) {
                 // there's a collision, make sure it's not the same one we just did
-                lastCollision = j;
-                if (movers[i].collisionIndex !== j) {
+                last = j;
+                if (movers[i].lastCollision !== j) {
                     collide(movers[i], movers[j]);
                 } else {
                     println("already got "+i+" and "+j);
@@ -158,7 +158,7 @@ var checkCollisions = function() {
                 break;
             }
         }
-        movers[i].lastCollision = lastCollision;
+        movers[i].lastCollision = last;
     }
 };
 draw = function() {
