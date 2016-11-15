@@ -115,7 +115,9 @@ Mover.prototype.checkEdges = function() {
 var count = 12;
 var movers = [];
 for (var i=0; i<count; i++) {
-    movers.push(new Mover(i));
+    var mover = new Mover(new PVector(random(0,width), random(0,height)), 
+        new PVector(random(-4,4),random(-4,4)), random(10,30),i);
+    movers.push(mover);
 }
 var maybe_collide = function(a,b) {
     if (a.position.x + a.radius + b.radius > b.position.x && 
