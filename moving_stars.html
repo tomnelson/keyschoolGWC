@@ -1,543 +1,549 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>XWing vs TieFighter</title>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
-</head>
-<body>
-  <h3>Use arrow keys to control xwing</h3>
-  <canvas id="canvas"></canvas>
-  <script>
-     /* @pjs preload="x-wing.gif,tie-fighter.jpg,blast.png"; */
-     var canvas = document.getElementById("canvas");
-    var processing = new Processing(canvas, function(processing) {
+    <head>
+        <title>XWing vs TieFighter</title>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
+    </head>
+    <body>
+        <h3>Use arrow keys to control xwing</h3>
+        <canvas id="canvas"></canvas>
+        <script>
+            /* @pjs preload="x-wing.gif,tie-fighter.jpg,blast.png"; */
+            var canvas = document.getElementById("canvas");
+            var processing = new Processing(canvas, function (processing) {
 
-      var xWingImage = processing.loadImage("x-wing.gif");
-      var tieFighterImage = processing.loadImage("tie-fighter.jpg");
-      var blast = processing.loadImage("blast.png")
-        processing.size(700,700);
-        processing.background(0xFFF);
+                var xWingImage = processing.loadImage("x-wing.gif");
+                var tieFighterImage = processing.loadImage("tie-fighter.jpg");
+                var blast = processing.loadImage("blast.png")
+                processing.size(700, 700);
+                processing.background(0xFFF);
 
-        var mouseIsPressed = false;
-        processing.mousePressed = function () { mouseIsPressed = true; };
-        processing.mouseReleased = function () { mouseIsPressed = false; };
+                var mouseIsPressed = false;
+                processing.mousePressed = function () {
+                    mouseIsPressed = true;
+                };
+                processing.mouseReleased = function () {
+                    mouseIsPressed = false;
+                };
 
-        var keyIsPressed = false;
-        processing.keyPressed = function () { keyIsPressed = true; };
-        processing.keyReleased = function () { keyIsPressed = false; };
+                var keyIsPressed = false;
+                processing.keyPressed = function () {
+                    keyIsPressed = true;
+                };
+                processing.keyReleased = function () {
+                    keyIsPressed = false;
+                };
 
-        function getImage(s) {
-            var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
-            processing.externals.sketch.imageCache.add(url);
-            return processing.loadImage(url);
-        }
-        var rotate = processing.rotate;
-        var image = processing.image;
-        var imageMode = processing.imageMode;
-        var translate = processing.translate;
+                function getImage(s) {
+                    var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
+                    processing.externals.sketch.imageCache.add(url);
+                    return processing.loadImage(url);
+                }
+                var rotate = processing.rotate;
+                var image = processing.image;
+                var imageMode = processing.imageMode;
+                var translate = processing.translate;
 
-        with (processing) {
-// all of the KA code is pasted inside the 'with' statement
-// 
-var Particle = function(position) {
-    this.acceleration = new PVector(0, -0.0);
-    this.position = position.get();
-    this.timeToLive = 100;
-};
+                with (processing) {
+                    // all of the KA code is pasted inside the 'with' statement
+                    // 
+                    var Particle = function (position) {
+                        this.acceleration = new PVector(0, -0.0);
+                        this.position = position.get();
+                        this.timeToLive = 100;
+                    };
 
-Particle.prototype.run = function() {
-    this.update();
-    this.display();
-};
-Particle.prototype.applyForce = function(force) {
-    this.acceleration.add(force);
-};
-Particle.prototype.update = function(){
-    this.velocity.add(this.acceleration);
-    this.position.add(this.velocity);
-    this.timeToLive -= 2;
-};
+                    Particle.prototype.run = function () {
+                        this.update();
+                        this.display();
+                    };
+                    Particle.prototype.applyForce = function (force) {
+                        this.acceleration.add(force);
+                    };
+                    Particle.prototype.update = function () {
+                        this.velocity.add(this.acceleration);
+                        this.position.add(this.velocity);
+                        this.timeToLive -= 2;
+                    };
 
-Particle.prototype.display = function() {
-};
+                    Particle.prototype.display = function () {
+                    };
 
-Particle.prototype.isDead = function() {
-   //  println("ttl:"+this.timeToLive);
-   if (this.timeToLive < 0) {
-        return true;
-    } else {
-        return false;
-    }
-};
-var Test = function(position, velocity, offset) {
-    this.position = //position;
-            PVector.add(position, offset);
-    this.velocity = velocity;
-    this.offset = offset;
-};
-Test.prototype.draw = function() {
-    noStroke();
-    fill(255, 0, 0, 255);
-    var radius = 20;
-    pushMatrix();
-    var angle = this.velocity.heading();
-    translate(this.position.x-this.offset.x, this.position.y-this.offset.y);
-    rotate(angle);
-    //translate(this.offset.x, this.offset.y);
-    ellipse(this.offset.x, this.offset.y, radius*5, radius/2);
-    popMatrix();
-};
+                    Particle.prototype.isDead = function () {
+                        //  println("ttl:"+this.timeToLive);
+                        if (this.timeToLive < 0) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    };
+                    var Test = function (position, velocity, offset) {
+                        this.position = //position;
+                                PVector.add(position, offset);
+                        this.velocity = velocity;
+                        this.offset = offset;
+                    };
+                    Test.prototype.draw = function () {
+                        noStroke();
+                        fill(255, 0, 0, 255);
+                        var radius = 20;
+                        pushMatrix();
+                        var angle = this.velocity.heading();
+                        translate(this.position.x - this.offset.x, this.position.y - this.offset.y);
+                        rotate(angle);
+                        //translate(this.offset.x, this.offset.y);
+                        ellipse(this.offset.x, this.offset.y, radius * 5, radius / 2);
+                        popMatrix();
+                    };
 
-var Blast = function(position, velocity, offset) {
-    Particle.call(this, position);
-    this.position = PVector.add(position, offset);
-            //position.get();
-    var sourceVelocity = velocity;
-    sourceVelocity.normalize();
-    sourceVelocity.mult(50);
-    this.velocity = sourceVelocity;
-    this.offset = offset;
-};
-Blast.prototype = Object.create(Particle.prototype);
-Blast.prototype.display = function() {
-    noStroke();
-    fill(255, 0, 0, 255);
-    var radius = map (this.timeToLive, 200, 0, 30, 10);
-//    var rotateCenter = this.position.get();
-//    rotateCenter.add(this.offset);
-    pushMatrix();
-    var angle = this.velocity.heading();
-    translate(this.position.x-this.offset.x, this.position.y-this.offset.y);
-    rotate(angle);
-    //translate(this.offset.x, this.offset.y);
-    ellipse(this.offset.x, this.offset.y, radius*5, radius/2);
-    popMatrix();
-};
+                    var Blast = function (position, velocity, offset) {
+                        Particle.call(this, position);
+                        this.position = PVector.add(position, offset);
+                        //position.get();
+                        var sourceVelocity = velocity;
+                        sourceVelocity.normalize();
+                        sourceVelocity.mult(50);
+                        this.velocity = sourceVelocity;
+                        this.offset = offset;
+                    };
+                    Blast.prototype = Object.create(Particle.prototype);
+                    Blast.prototype.display = function () {
+                        noStroke();
+                        fill(255, 0, 0, 255);
+                        var radius = map(this.timeToLive, 200, 0, 30, 10);
+                        //    var rotateCenter = this.position.get();
+                        //    rotateCenter.add(this.offset);
+                        pushMatrix();
+                        var angle = this.velocity.heading();
+                        translate(this.position.x - this.offset.x, this.position.y - this.offset.y);
+                        rotate(angle);
+                        //translate(this.offset.x, this.offset.y);
+                        ellipse(this.offset.x, this.offset.y, radius * 5, radius / 2);
+                        popMatrix();
+                    };
 
-var Explosion = function(position, velocity) {
-    Particle.call(this, position);
-    this.position = position.get();
-    var sourceVelocity = velocity.get();
-    sourceVelocity.normalize();
-    sourceVelocity.mult(50);
-    this.velocity = sourceVelocity;
-    this.timeToLive = 30;
-};
-Explosion.prototype = Object.create(Particle.prototype);
-Explosion.prototype.display = function() {
-    stroke(255, 0, 0, this.timeToLive+225);
-    noFill();
-    strokeWeight(2);
- //   fill(255, 0, 0, 255);
-    var radius = map (this.timeToLive, 30, 0, 10, 150);
-    pushMatrix();
-   // var angle = this.velocity.heading();
-    translate(this.position.x, this.position.y);
-   // rotate(angle);
-    //radius += 50;
-    ellipse(0, 0, radius, radius);
-    fill(255,200,200);
-    ellipse(0, 0, radius-40, radius-40);
-    popMatrix();
-};
-
-
-var ParticleSystem = function(position, velocity) {
-    this.origin = position.get();
-    this.velocity = velocity.get();
-    this.particles = [];
-};
-
-ParticleSystem.prototype.addParticle = function(particle) {
-    this.particles.push(particle);
- //   this.particles.push(new Particle(this.origin, this.velocity));
-};
-
-ParticleSystem.prototype.run = function() {
-    for (var i = this.particles.length-1; i >= 0; i--) {
-        var p = this.particles[i];
-        p.run();
-        if (p.isDead()) {
-            this.particles.splice(i, 1);
-        }
-    }
-};
-
-// 
-// base class for both ships
-var Mover = function(x, y) {
-    this.position = new PVector(x, y);
-    this.velocity = new PVector(0,0);
-    this.acceleration = new PVector(0,0);
-    this.rotateVelocity = 0;
-};
-Mover.prototype.action = function() {
-    this.update();
-    this.checkEdges();
-    this.draw();
-};
-Mover.prototype.draw = function() {
-    pushMatrix();
-    translate(this.position.x,this.position.y);
-    rotate(PI/2+this.velocity.heading());
-    fill(255,0,0);
-    ellipse(0,0,20,20);
-    popMatrix();
-};
-Mover.prototype.update = function() {
-    //println("rotateVelocity = "+this.rotateVelocity);
-    this.velocity.rotate(this.rotateVelocity);
-    this.velocity.add(this.acceleration);
-    this.velocity.limit(10);
-    this.position.add(this.velocity);
-    this.acceleration.mult(0);
-};
-Mover.prototype.applyForce = function(force) {
-    this.acceleration.add(force);
-};
-Mover.prototype.speedUp = function() {
-    var dir = new PVector(this.velocity.x, this.velocity.y);
-    if (dir.x === 0 && dir.y === 0) {
-        // kick off an initial velocity
-        dir.y = -0.1;
-    } else {
-        dir.mult(1.7);
-    }
-    this.applyForce(dir);
-};
-Mover.prototype.slowDown = function() {
-    var dir = new PVector(this.velocity.x, this.velocity.y);
-    dir.mult(-0.7);
-    this.applyForce(dir);
-    this.update();
-};
-Mover.prototype.turnLeft = function() {
-//    this.rotateVelocity += -PI/180;
-//    this.rotateVelocity = constrain(this.rotateVelocity, -PI/90, PI/90)
-    this.velocity.rotate(-PI/30);
-};
-Mover.prototype.turnRight = function() {
-//    this.rotateVelocity += PI/180;
-//    this.rotateVelocity = constrain(this.rotateVelocity, -PI/90, PI/90)
-   this.velocity.rotate(PI/30);
-};
-Mover.prototype.checkEdges = function() {
-  if (this.position.x > width+20) {
-    this.position.x = -20;
-  }
-  else if (this.position.x < -20) {
-    this.position.x = width+20;
-  }
-  if (this.position.y > height+20) {
-    this.position.y = -20;
-  }
-  else if (this.position.y < -20) {
-    this.position.y = height+20;
-  }
-};
-var Star = function(x,y) {
-    Mover.call(this, x, y);
-//    this.position = new PVector(random(0,width),random(0,height));
-   // this.velocity = new PVector(0, 0.1);
-    this.start = random(0,255);
-};
-Star.prototype = Object.create(Mover.prototype);
-
-Star.prototype.speedUp = function() {
-    var dir = new PVector(this.velocity.x, this.velocity.y);
-    if (dir.mag() === 0) {
-        dir.y = 1;
-    }
-    dir.normalize();
-    dir.mult(0.5);
-    
-  //  println("dir:"+dir);
-//    if (dir.x === 0 && dir.y === 0) {
-//        // kick off an initial velocity
-//        dir.y = -0.1;
-//    } else {
-//        dir.mult(1.7);
-//    }
-    this.applyForce(dir);
-    this.action();
-};
-Star.prototype.slowDown = function() {
-    var dir = new PVector(this.velocity.x, this.velocity.y);
-    if (dir.mag() === 0) {
-        dir.y = -1;
-    }
-    dir.normalize();
-    dir.mult(-0.5);
-    
-    this.applyForce(dir);
-    this.action();
-};
-Star.prototype.checkEdges = function() {
-    if (this.position.y > height) {
-        this.position.y = 0;
-    }
-    if (this.position.x > width) {
-        this.position.x = 0;
-    }
-    if (this.position.y < 0) {
-        this.position.y = height;
-    }
-    if (this.position.x < 0) {
-        this.position.x = width;
-    }
-};
-Star.prototype.draw = function() {
-    stroke(255,255,255,100+(this.start+processing.frameCount)%255);
-    point(this.position.x, this.position.y);
-};
-var Stars = function() {
-    this.stars = [];
-    for (var i=0; i<200; i++) {
-        this.stars.push(new Star(random(0,width),random(0,height)));
-    }
-};
-Stars.prototype.speedUp = function() {
-    for (var i=0; i<this.stars.length; i++) {
-        this.stars[i].speedUp();
-    }
-};
-Stars.prototype.slowDown = function() {
-    for (var i=0; i<this.stars.length; i++) {
-        this.stars[i].slowDown();
-    }
-};
-Stars.prototype.turnLeft = function() {
-    for (var i=0; i<this.stars.length; i++) {
-        this.stars[i].turnLeft();
-    }
-};
-Stars.prototype.turnRight = function() {
-    for (var i=0; i<this.stars.length; i++) {
-        this.stars[i].turnRight();
-    }
-};
-
-Stars.prototype.update = function() {
-   // println("update "+this.stars.length+" stars");
-    for (var i=0; i<this.stars.length; i++) {
-      //  println("update "+i);
-        this.stars[i].action();
-     }
-};
-Stars.prototype.draw = function() {
-    for (var i=0; i<this.stars.length; i++) {
-        this.stars[i].draw();
-    }
-};
-
-var XWing = function(x, y, image) {
-    Mover.call(this, x, y);
-    this.image = image;
-    this.scale = new PVector(0.5, 0.5);
-    this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
-    this.applyForce(new PVector(0,-1));
-    this.leftBlasterOffset = new PVector(10, -35);
-    this.rightBlasterOffset = new PVector(10, 35);
-};
-XWing.prototype = Object.create(Mover.prototype);
-XWing.prototype.constructor = XWing;
-XWing.prototype.draw = function() {
-    pushMatrix();
-    translate(this.position.x,this.position.y);
-    rotate(PI/2+this.velocity.heading());
-    scale(this.scale.x, this.scale.y);
-    imageMode(CENTER);
-    image(this.image, 0,0);
-    popMatrix();
-   // var test = new Test(this.position.get(), this.velocity.get(), new PVector(10, 35));
-   // test.draw();
-};
-XWing.prototype.update = function() {
-//    Mover.prototype.update.call(this);
-    this.velocity.rotate(this.rotateVelocity);
-    this.velocity.add(this.acceleration);
-    this.velocity.limit(10);
-  //  this.position.add(this.velocity);
-    this.acceleration.mult(0);
-
-    this.blaster.run();
-};
-XWing.prototype.fireBlaster = function() {
-  //  println("there are "+this.blaster.particles.length);
-    this.blaster.origin.set(this.position.get());
-    this.blaster.velocity.set(this.velocity.get());
-    this.blaster.addParticle(new Blast(this.position.get(), this.velocity.get(), this.leftBlasterOffset));
-    this.blaster.addParticle(new Blast(this.position.get(), this.velocity.get(), this.rightBlasterOffset));
-};
-
-var TieFighter = function(x, y, image, target) {
-    Mover.call(this, x, y);
-    this.image = image;
-    this.target = target;
-    this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
-
-    this.initialize();
-};
-TieFighter.prototype = Object.create(Mover.prototype);
-TieFighter.prototype.constructor = TieFighter;
-TieFighter.prototype.initialize = function() {
-    this.position = new PVector(random(0, width), -100);
-    this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
-};
-TieFighter.prototype.draw = function() {
-    pushMatrix();
-    translate(this.position.x,this.position.y);
-    rotate(PI/2+this.velocity.heading());
-    imageMode(CENTER);
-    image(this.image, 0,0);
-    popMatrix();
-};
-TieFighter.prototype.fireBlaster = function() {
-    var dir = this.target.position.get();
-    dir.sub(this.position);
-    this.blaster.addParticle(new Blast(this.position.get(), dir, new PVector(0,0)));
-};
-TieFighter.prototype.update = function() {
-    Mover.prototype.update.call(this);
-//    for (var i=0; i<xwing.blaster.particles.length; i++) {
-//        this.hitBy(xwing.blaster.particles[i]);
-//    }
-    if (this.position.y > height/4 && this.blaster.particles.length === 0) {
-        this.fireBlaster();
-      //  var dir = xwing.position.get();
-      //  dir.sub(this.position);
-      //this.blaster.addParticle(new Blast(this.position.get(), dir, new PVector(0,0)));
-    }
-    this.blaster.run();
-  //  this.boom.run();
-};
-
-TieFighter.prototype.hitBy = function(particle) {
-    if(particle) {
-        var bounds = {
-            left : (this.position.x - 20),
-            right : (this.position.x + 20),
-            top : (this.position.y - 20),
-            bottom : (this.position.y + 20)
-        };
-        if (bounds.left < particle.position.x && particle.position.x < bounds.right && bounds.top < particle.position.y && particle.position.y < bounds.bottom) {
-            this.velocity.mult(0);
-//            this.boom.origin.set(this.position.get());
-//            this.boom.addParticle(new Explosion(this.position, this.velocity));
-            return true;
-        }
-    }
-    return false;
-};
-
-TieFighter.prototype.checkEdges = function() {
-  if (this.position.x > width+100) {
-      this.initialize();
-  }
-  else if (this.position.x < -100) {
-      this.initialize();
-  }
-  if (this.position.y > height+100) {
-      this.initialize();
-  }
-  else if (this.position.y < -100) {
-//    no op
-  }
-};
-var Game = function() {
-    this.fighters = [];
-    this.xwing = new XWing(width/2, 8*height/10, xWingImage);
-            //random(0,width),random(0,height), xWingImage);
-    for (var i=0; i<10; i++) {
-        this.fighters.push(new TieFighter(0, 0, tieFighterImage, this.xwing));
-    }
-
-    this.stars = new Stars();
-    this.explosions = new ParticleSystem(this.xwing.position.get(), this.xwing.velocity.get());
+                    var Explosion = function (position, velocity) {
+                        Particle.call(this, position);
+                        this.position = position.get();
+                        var sourceVelocity = velocity.get();
+                        sourceVelocity.normalize();
+                        sourceVelocity.mult(50);
+                        this.velocity = sourceVelocity;
+                        this.timeToLive = 30;
+                    };
+                    Explosion.prototype = Object.create(Particle.prototype);
+                    Explosion.prototype.display = function () {
+                        stroke(255, 0, 0, this.timeToLive + 225);
+                        noFill();
+                        strokeWeight(4);
+                        //   fill(255, 0, 0, 255);
+                        var radius = map(this.timeToLive, 30, 0, 10, 150);
+                        pushMatrix();
+                        // var angle = this.velocity.heading();
+                        translate(this.position.x, this.position.y);
+                        // rotate(angle);
+                        //radius += 50;
+                        ellipse(0, 0, radius, radius);
+                        fill(255, 200, 200);
+                        ellipse(0, 0, radius - 40, radius - 40);
+                        popMatrix();
+                    };
 
 
-};
+                    var ParticleSystem = function (position, velocity) {
+                        this.origin = position.get();
+                        this.velocity = velocity.get();
+                        this.particles = [];
+                    };
 
-Game.prototype.draw = function() {
-    this.stars.update();
-    this.stars.draw();
-    this.xwing.action();
-    if (this.fighters.length > 0) {
-       this.fighters[0].action();
-    }
-     for (var i=0; i<this.xwing.blaster.particles.length && this.fighters.length > 0; i++) {
-        if (this.fighters[0].hitBy(this.xwing.blaster.particles[i])) {
-          //  if (this.explosions.particles.length === 0) {
-                this.explosions.origin.set(this.fighters[0].position.get());
-                this.explosions.addParticle(new Explosion(this.fighters[0].position, this.fighters[0].velocity));
-          //  }
-            if (this.fighters.length > 0) {
-               this.fighters.splice(0,1);
-            }
+                    ParticleSystem.prototype.addParticle = function (particle) {
+                        this.particles.push(particle);
+                        //   this.particles.push(new Particle(this.origin, this.velocity));
+                    };
 
-        }
-    }
-                    this.explosions.run();
+                    ParticleSystem.prototype.run = function () {
+                        for (var i = this.particles.length - 1; i >= 0; i--) {
+                            var p = this.particles[i];
+                            p.run();
+                            if (p.isDead()) {
+                                this.particles.splice(i, 1);
+                            }
+                        }
+                    };
 
-};
-Game.prototype.turnLeft = function() {
-    this.xwing.turnLeft();
-    this.stars.turnLeft();
-};
-Game.prototype.turnRight = function() {
-    this.xwing.turnRight();
-    this.stars.turnRight();
-};
-Game.prototype.speedUp = function() {
-    this.stars.speedUp();
-};
-Game.prototype.slowDown = function() {
-    this.stars.slowDown();
-};
-Game.prototype.fireBlaster = function() {
-    this.xwing.fireBlaster();
-};
-Game.prototype.xwingShoot = function() {
-    this.xwing.fireBlaster();
-};
-Game.prototype.tieFighterShoot = function() {
-    this.tieFighter.fireBlaster(xwing);
-};
-var game = new Game();
-var draw=function() {
-    background(0,0,0);
-    game.draw();
-   // println("update");
-  //  stars.update();
-   // println("draw");
-  //  stars.draw();
-  //  xwing.action();
-  //  if (fighters.length > 0) {
-  //      fighters[0].action();
-  //  }
-   
-};
-keyPressed = function() {
-    if (keyCode === RIGHT) {
-        game.turnRight();
-    } else if (keyCode === LEFT) {
-        game.turnLeft();
-    } else if (keyCode === UP) {
-        game.speedUp();
-    } else if (keyCode === DOWN) {
-        game.slowDown();
-    } else if (keyCode === 32 || keyCode === 83 || keyCode === 70) {
-        //var blaster = new Blaster(100,100);
-        game.fireBlaster();
-    } else {
-        //println("keycode:"+keyCode);
-    }    
-};
+                    // 
+                    // base class for both ships
+                    var Mover = function (x, y) {
+                        this.position = new PVector(x, y);
+                        this.velocity = new PVector(0, 0);
+                        this.acceleration = new PVector(0, 0);
+                        this.rotateVelocity = 0;
+                    };
+                    Mover.prototype.action = function () {
+                        this.update();
+                        this.checkEdges();
+                        this.draw();
+                    };
+                    Mover.prototype.draw = function () {
+                        pushMatrix();
+                        translate(this.position.x, this.position.y);
+                        rotate(PI / 2 + this.velocity.heading());
+                        fill(255, 0, 0);
+                        ellipse(0, 0, 20, 20);
+                        popMatrix();
+                    };
+                    Mover.prototype.update = function () {
+                        //println("rotateVelocity = "+this.rotateVelocity);
+                        this.velocity.rotate(this.rotateVelocity);
+                        this.velocity.add(this.acceleration);
+                        this.velocity.limit(10);
+                        this.position.add(this.velocity);
+                        this.acceleration.mult(0);
+                    };
+                    Mover.prototype.applyForce = function (force) {
+                        this.acceleration.add(force);
+                    };
+                    Mover.prototype.speedUp = function () {
+                        var dir = new PVector(this.velocity.x, this.velocity.y);
+                        if (dir.x === 0 && dir.y === 0) {
+                            // kick off an initial velocity
+                            dir.y = -0.1;
+                        } else {
+                            dir.mult(1.7);
+                        }
+                        this.applyForce(dir);
+                    };
+                    Mover.prototype.slowDown = function () {
+                        var dir = new PVector(this.velocity.x, this.velocity.y);
+                        dir.mult(-0.7);
+                        this.applyForce(dir);
+                        this.update();
+                    };
+                    Mover.prototype.turnLeft = function () {
+                        //    this.rotateVelocity += -PI/180;
+                        //    this.rotateVelocity = constrain(this.rotateVelocity, -PI/90, PI/90)
+                        this.velocity.rotate(-PI / 30);
+                    };
+                    Mover.prototype.turnRight = function () {
+                        //    this.rotateVelocity += PI/180;
+                        //    this.rotateVelocity = constrain(this.rotateVelocity, -PI/90, PI/90)
+                        this.velocity.rotate(PI / 30);
+                    };
+                    Mover.prototype.checkEdges = function () {
+                        if (this.position.x > width + 20) {
+                            this.position.x = -20;
+                        } else if (this.position.x < -20) {
+                            this.position.x = width + 20;
+                        }
+                        if (this.position.y > height + 20) {
+                            this.position.y = -20;
+                        } else if (this.position.y < -20) {
+                            this.position.y = height + 20;
+                        }
+                    };
+                    var Star = function (x, y) {
+                        Mover.call(this, x, y);
+                        //    this.position = new PVector(random(0,width),random(0,height));
+                        this.velocity = new PVector(0, 0.1);
+                        this.start = random(0, 255);
+                    };
+                    Star.prototype = Object.create(Mover.prototype);
 
-// end of pasted-in KA code
-       }
-        if (typeof draw !== 'undefined') processing.draw = draw;
-    });
-  </script>
-</body>
+                    Star.prototype.speedUp = function () {
+                        var dir = new PVector(this.velocity.x, this.velocity.y);
+                        if (dir.mag() === 0) {
+                            dir.y = 1;
+                        }
+                        dir.normalize();
+                        dir.mult(0.5);
+
+                        //  println("dir:"+dir);
+                        //    if (dir.x === 0 && dir.y === 0) {
+                        //        // kick off an initial velocity
+                        //        dir.y = -0.1;
+                        //    } else {
+                        //        dir.mult(1.7);
+                        //    }
+                        this.applyForce(dir);
+                        this.action();
+                    };
+                    Star.prototype.slowDown = function () {
+                        var dir = new PVector(this.velocity.x, this.velocity.y);
+                        if (dir.mag() === 0) {
+                            dir.y = -1;
+                        }
+                        dir.normalize();
+                        dir.mult(-0.5);
+
+                        this.applyForce(dir);
+                        this.action();
+                    };
+                    Star.prototype.checkEdges = function () {
+                        if (this.position.y > height) {
+                            this.position.y = 0;
+                        }
+                        if (this.position.x > width) {
+                            this.position.x = 0;
+                        }
+                        if (this.position.y < 0) {
+                            this.position.y = height;
+                        }
+                        if (this.position.x < 0) {
+                            this.position.x = width;
+                        }
+                    };
+                    Star.prototype.draw = function () {
+                        strokeWeight(2);
+                        stroke(255, 255, 255, 100 + (this.start + processing.frameCount) % 255);
+                        point(this.position.x, this.position.y);
+                    };
+                    var Stars = function () {
+                        this.stars = [];
+                        for (var i = 0; i < 200; i++) {
+                            this.stars.push(new Star(random(0, width), random(0, height)));
+                        }
+                    };
+                    Stars.prototype.speedUp = function () {
+                        for (var i = 0; i < this.stars.length; i++) {
+                            this.stars[i].speedUp();
+                        }
+                    };
+                    Stars.prototype.slowDown = function () {
+                        for (var i = 0; i < this.stars.length; i++) {
+                            this.stars[i].slowDown();
+                        }
+                    };
+                    Stars.prototype.turnLeft = function () {
+                        for (var i = 0; i < this.stars.length; i++) {
+                            this.stars[i].turnLeft();
+                        }
+                    };
+                    Stars.prototype.turnRight = function () {
+                        for (var i = 0; i < this.stars.length; i++) {
+                            this.stars[i].turnRight();
+                        }
+                    };
+
+                    Stars.prototype.update = function () {
+                        // println("update "+this.stars.length+" stars");
+                        for (var i = 0; i < this.stars.length; i++) {
+                            //  println("update "+i);
+                            this.stars[i].action();
+                        }
+                    };
+                    Stars.prototype.draw = function () {
+                        for (var i = 0; i < this.stars.length; i++) {
+                            this.stars[i].draw();
+                        }
+                    };
+
+                    var XWing = function (x, y, image) {
+                        Mover.call(this, x, y);
+                        this.image = image;
+                        this.scale = new PVector(0.5, 0.5);
+                        this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
+                        this.applyForce(new PVector(0, -1));
+                        this.leftBlasterOffset = new PVector(10, -35);
+                        this.rightBlasterOffset = new PVector(10, 35);
+                    };
+                    XWing.prototype = Object.create(Mover.prototype);
+                    XWing.prototype.constructor = XWing;
+                    XWing.prototype.draw = function () {
+                        pushMatrix();
+                        translate(this.position.x, this.position.y);
+                        rotate(PI / 2 + this.velocity.heading());
+                        scale(this.scale.x, this.scale.y);
+                        imageMode(CENTER);
+                        image(this.image, 0, 0);
+                        popMatrix();
+                        // var test = new Test(this.position.get(), this.velocity.get(), new PVector(10, 35));
+                        // test.draw();
+                    };
+                    XWing.prototype.update = function () {
+                        Mover.prototype.update.call(this);
+                        //    this.velocity.rotate(this.rotateVelocity);
+                        //    this.velocity.add(this.acceleration);
+                        //    this.velocity.limit(10);
+                        //    this.position.add(this.velocity);
+                        //    this.acceleration.mult(0);
+
+                        this.blaster.run();
+                    };
+                    XWing.prototype.fireBlaster = function () {
+                        //  println("there are "+this.blaster.particles.length);
+                        this.blaster.origin.set(this.position.get());
+                        this.blaster.velocity.set(this.velocity.get());
+                        this.blaster.addParticle(new Blast(this.position.get(), this.velocity.get(), this.leftBlasterOffset));
+                        this.blaster.addParticle(new Blast(this.position.get(), this.velocity.get(), this.rightBlasterOffset));
+                    };
+
+                    var TieFighter = function (x, y, image, target) {
+                        Mover.call(this, x, y);
+                        this.image = image;
+                        this.target = target;
+                        this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
+
+                        this.initialize();
+                    };
+                    TieFighter.prototype = Object.create(Mover.prototype);
+                    TieFighter.prototype.constructor = TieFighter;
+                    TieFighter.prototype.initialize = function () {
+                        this.position = new PVector(random(0, width), -100);
+                        this.velocity = new PVector(random(-5.0, 5.0), random(5.0, 10.0));
+                    };
+                    TieFighter.prototype.draw = function () {
+                        pushMatrix();
+                        translate(this.position.x, this.position.y);
+                        rotate(PI / 2 + this.velocity.heading());
+                        imageMode(CENTER);
+                        image(this.image, 0, 0);
+                        popMatrix();
+                    };
+                    TieFighter.prototype.fireBlaster = function () {
+                        var dir = this.target.position.get();
+                        dir.sub(this.position);
+                        this.blaster.addParticle(new Blast(this.position.get(), dir, new PVector(0, 0)));
+                    };
+                    TieFighter.prototype.update = function () {
+                        Mover.prototype.update.call(this);
+                        //    for (var i=0; i<xwing.blaster.particles.length; i++) {
+                        //        this.hitBy(xwing.blaster.particles[i]);
+                        //    }
+                        if (this.position.y > height / 4 && this.blaster.particles.length === 0) {
+                            this.fireBlaster();
+                            //  var dir = xwing.position.get();
+                            //  dir.sub(this.position);
+                            //this.blaster.addParticle(new Blast(this.position.get(), dir, new PVector(0,0)));
+                        }
+                        this.blaster.run();
+                        //  this.boom.run();
+                    };
+
+                    TieFighter.prototype.hitBy = function (particle) {
+                        if (particle) {
+                            var bounds = {
+                                left: (this.position.x - 20),
+                                right: (this.position.x + 20),
+                                top: (this.position.y - 20),
+                                bottom: (this.position.y + 20)
+                            };
+                            if (bounds.left < particle.position.x && particle.position.x < bounds.right && bounds.top < particle.position.y && particle.position.y < bounds.bottom) {
+                                this.velocity.mult(0);
+                                //            this.boom.origin.set(this.position.get());
+                                //            this.boom.addParticle(new Explosion(this.position, this.velocity));
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+
+                    TieFighter.prototype.checkEdges = function () {
+                        if (this.position.x > width + 100) {
+                            this.initialize();
+                        } else if (this.position.x < -100) {
+                            this.initialize();
+                        }
+                        if (this.position.y > height + 100) {
+                            this.initialize();
+                        } else if (this.position.y < -100) {
+                            //    no op
+                        }
+                    };
+                    var Game = function () {
+                        this.fighters = [];
+                        this.xwing = new XWing(width / 2, 8 * height / 10, xWingImage);
+                        //random(0,width),random(0,height), xWingImage);
+                        for (var i = 0; i < 10; i++) {
+                            this.fighters.push(new TieFighter(0, 0, tieFighterImage, this.xwing));
+                        }
+
+                        this.stars = new Stars();
+                        this.explosions = new ParticleSystem(this.xwing.position.get(), this.xwing.velocity.get());
+
+
+                    };
+
+                    Game.prototype.draw = function () {
+                        this.stars.update();
+                        this.stars.draw();
+                        this.xwing.action();
+                        if (this.fighters.length > 0) {
+                            this.fighters[0].action();
+                        }
+                        for (var i = 0; i < this.xwing.blaster.particles.length && this.fighters.length > 0; i++) {
+                            if (this.fighters[0].hitBy(this.xwing.blaster.particles[i])) {
+                                //  if (this.explosions.particles.length === 0) {
+                                this.explosions.origin.set(this.fighters[0].position.get());
+                                this.explosions.addParticle(new Explosion(this.fighters[0].position, this.fighters[0].velocity));
+                                //  }
+                                if (this.fighters.length > 0) {
+                                    this.fighters.splice(0, 1);
+                                }
+
+                            }
+                        }
+                        this.explosions.run();
+
+                    };
+                    Game.prototype.turnLeft = function () {
+                        this.xwing.turnLeft();
+                        // this.stars.turnLeft();
+                    };
+                    Game.prototype.turnRight = function () {
+                        this.xwing.turnRight();
+                        // this.stars.turnRight();
+                    };
+                    Game.prototype.speedUp = function () {
+                        this.xwing.speedUp();
+                    };
+                    Game.prototype.slowDown = function () {
+                        this.xwing.slowDown();
+                    };
+                    Game.prototype.fireBlaster = function () {
+                        this.xwing.fireBlaster();
+                    };
+                    Game.prototype.xwingShoot = function () {
+                        this.xwing.fireBlaster();
+                    };
+                    Game.prototype.tieFighterShoot = function () {
+                        this.tieFighter.fireBlaster(xwing);
+                    };
+                    var game = new Game();
+                    var draw = function () {
+                        background(0, 0, 0);
+                        game.draw();
+                        // println("update");
+                        //  stars.update();
+                        // println("draw");
+                        //  stars.draw();
+                        //  xwing.action();
+                        //  if (fighters.length > 0) {
+                        //      fighters[0].action();
+                        //  }
+
+                    };
+                    keyPressed = function () {
+                        if (keyCode === RIGHT) {
+                            game.turnRight();
+                        } else if (keyCode === LEFT) {
+                            game.turnLeft();
+                        } else if (keyCode === UP) {
+                            game.speedUp();
+                        } else if (keyCode === DOWN) {
+                            game.slowDown();
+                        } else if (keyCode === 32 || keyCode === 83 || keyCode === 70) {
+                            //var blaster = new Blaster(100,100);
+                            game.fireBlaster();
+                        } else {
+                            //println("keycode:"+keyCode);
+                        }
+                    };
+
+                    // end of pasted-in KA code
+                }
+                if (typeof draw !== 'undefined')
+                    processing.draw = draw;
+            });
+        </script>
+    </body>
 </html>

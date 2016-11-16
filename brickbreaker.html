@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Brick Breaker</title>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/buzz/1.1.10/buzz.min.js"></script>
 </head>
 <body>
@@ -303,8 +303,11 @@ draw = function() {
     if(paddle.hit(ball)) {
         whack.play();
         ball.velocity.y *= -1;
-        ball.velocity.x += paddle.velocity.x;
-        ball.velocity.x = min(3, max(-3, ball.velocity.x));
+       // println("was: "+ball.velocity+" + "+paddle.velocity);
+        ball.velocity.x = constrain(ball.velocity.x + paddle.velocity.x, -6, 6);
+       // println("now:"+ball.velocity);
+ //       ball.velocity.x += paddle.velocity.x;
+ //       ball.velocity.x = min(3, max(-3, ball.velocity.x));
     }
     if(gameOn === false) {
         text("Click to Play",width/2-35,height/2+50);   

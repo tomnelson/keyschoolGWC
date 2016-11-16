@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>XWing vs TieFighter</title>
-        <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
        <!--<script src="http://localhost:8383/keyschoolGWC/processing.min.js"></script>-->
     </head>
     <body>
@@ -51,7 +51,7 @@
                     var Particle = function (position) {
                         this.acceleration = new PVector(0, -0.0);
                         this.position = position.get();
-                        this.timeToLive = 100;
+                        this.timeToLive = 200;
                     };
 
                     Particle.prototype.run = function () {
@@ -111,7 +111,7 @@
                     Blast.prototype.display = function () {
                         noStroke();
                         fill(255, 0, 0, 255);
-                        var radius = map(this.timeToLive, 200, 0, 30, 10);
+                        var radius = map(this.timeToLive, 800, 0, 30, 10);
                         //    var rotateCenter = this.position.get();
                         //    rotateCenter.add(this.offset);
                         pushMatrix();
@@ -401,12 +401,10 @@
                         this.blaster.addParticle(new Blast(this.position.get(), this.velocity.get(), this.rightBlasterOffset));
                     };
 
-                    var TieFighter = function (x, y, image, target) {
+                    var TieFighter = function (x, y, image) {
                         Mover.call(this, x, y);
                         this.image = image;
-                        this.target = target;
                         this.blaster = new ParticleSystem(this.position.get(), this.velocity.get());
-
                         this.initialize();
                     };
                     TieFighter.prototype = Object.create(Mover.prototype);
@@ -423,8 +421,8 @@
                         image(this.image, 0, 0);
                         popMatrix();
                     };
-                    TieFighter.prototype.fireBlaster = function () {
-                        var dir = this.target.position.get();
+                    TieFighter.prototype.fireBlaster = function (target) {
+                        var dir = target.position.get();
                         dir.sub(this.position);
                         var blast = new Blast(this.position.get(), dir, new PVector(0, 0));
                         blast.velocity.limit(30);
@@ -435,12 +433,10 @@
                         //    for (var i=0; i<xwing.blaster.particles.length; i++) {
                         //        this.hitBy(xwing.blaster.particles[i]);
                         //    }
-                        if (this.position.y > height / 4 && this.blaster.particles.length === 0) {
-                            this.fireBlaster();
                             //  var dir = xwing.position.get();
                             //  dir.sub(this.position);
                             //this.blaster.addParticle(new Blast(this.position.get(), dir, new PVector(0,0)));
-                        }
+                      //  }
                         this.blaster.run();
                         //  this.boom.run();
                     };
@@ -477,16 +473,17 @@
                     };
                     var Game = function () {
                         this.fighters = [];
-                        this.xwing = new XWing(width / 2, 9 * height / 10, xWingImage);
-                        //random(0,width),random(0,height), xWingImage);
+                        this.xwings = [];;
+                        for (var i = 0; i < 1; i++) {
+                            this.xwings.push(new XWing(width / 2, 9 * height / 10, xWingImage));
+                        }
                         for (var i = 0; i < 10; i++) {
-                            this.fighters.push(new TieFighter(0, 0, tieFighterImage, this.xwing));
+                            this.fighters.push(new TieFighter(0, 0, tieFighterImage, this.xwings[0]));
                         }
 
                         this.stars = new Stars();
-                        this.explosions = new ParticleSystem(this.xwing.position.get(), this.xwing.velocity.get());
-
-
+                        this.explosions = new ParticleSystem(this.xwings[0].position.get(), this.xwings[0].velocity.get());
+                        this.xwingHitTime = 0;
                     };
                     Game.prototype.moreFighters = function() {
                         for (var i = 0; i < 10; i++) {
@@ -497,13 +494,26 @@
                     Game.prototype.draw = function () {
                         this.stars.update();
                         this.stars.draw();
-                        this.xwing.action();
+                        if (this.xwings.length > 0) {
+                            this.xwings[0].action();
+                        }
+//                        if (this.xwingHitTime > frameCount + 2000) {
+//                            this.x
+//                        }
                         if (this.fighters.length > 0) {
                             this.fighters[0].action();
                         }
-                        for (var i = 0; i < this.xwing.blaster.particles.length && this.fighters.length > 0; i++) {
-                            if (this.fighters[0].hitBy(this.xwing.blaster.particles[i])) {
-                                //  if (this.explosions.particles.length === 0) {
+                        if (this.xwings.length > 0 && this.fighters.length > 0) {
+                            if (this.fighters[0].position.y > height / 4 && this.fighters[0].blaster.particles.length === 0) {
+                                this.fighters[0].fireBlaster(this.xwings[0]);
+                            }
+                        }
+
+                        for (var i = 0; 
+                                this.xwings.length > 0 &&
+                                this.fighters.length > 0 &&
+                                i < this.xwings[0].blaster.particles.length; i++) {
+                            if (this.fighters[0].hitBy(this.xwings[0].blaster.particles[i])) {
                                 this.explosions.origin.set(this.fighters[0].position.get());
                                 this.explosions.addParticle(new Explosion(this.fighters[0].position, this.fighters[0].velocity));
                                 //  }
@@ -513,10 +523,12 @@
 
                             }
                         }
-                        for (var i=0; this.fighters.length > 0 && i<this.fighters[0].blaster.particles.length; i++) {
-                            if (this.xwing.hitBy(this.fighters[0].blaster.particles[i])) {
-                                //this.xwing
-                                this.explosions.addParticle(new Explosion(this.xwing.position, new PVector(0,0)));
+                        for (var i=0; 
+                            this.xwings.length > 0 &&
+                            this.fighters.length > 0 && i<this.fighters[0].blaster.particles.length; i++) {
+                            if (this.xwings[0].hitBy(this.fighters[0].blaster.particles[i])) {
+                                this.explosions.addParticle(new Explosion(this.xwings[0].position, new PVector(0,0)));
+                                this.xwings.splice(0, 1);
                             }
                         }
                         this.explosions.run();
@@ -537,14 +549,18 @@
                         this.stars.slowDown();
                     };
                     Game.prototype.fireBlaster = function () {
-                        this.xwing.fireBlaster();
+                        if (this.xwings.length > 0) {
+                            this.xwings[0].fireBlaster();
+                        }
                     };
                     Game.prototype.xwingShoot = function () {
-                        this.xwing.fireBlaster();
+                        if (this.xwings.length > 0) {
+                            this.xwings[0].fireBlaster();
+                        }
                     };
-                    Game.prototype.tieFighterShoot = function () {
-                        this.tieFighter.fireBlaster(xwing);
-                    };
+//                    Game.prototype.tieFighterShoot = function () {
+//                        this.tieFighter.fireBlaster(xwing);
+//                    };
                     var game = new Game();
                     var draw = function () {
                         background(0, 0, 0);

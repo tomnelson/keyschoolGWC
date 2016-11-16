@@ -141,6 +141,7 @@ var Fish = function(color) {
   this.followSpeed = FOLLOW_SPEED_LIMIT;
   this.mass = 0.5;
   this.edge = 50;
+  this.leaderForce = new PVector(0, -0.01);
 };
 
 // follow the leader!
@@ -150,7 +151,7 @@ Fish.prototype.follow = function(other) {
         this.velocity.add(this.acceleration);
         this.velocity.limit(this.followSpeed);
     } else {
-        this.applyForce(new PVector(0,-0.01));
+        this.applyForce(this.leaderForce);
         this.velocity.add(this.acceleration);
         this.velocity.limit(0.3);
     }
@@ -470,6 +471,7 @@ School.prototype.run = function() {
 School.prototype.nominateLeader = function() {
     if (this.fishes.length > 0) {
         this.leader = this.fishes[0];
+        this.leaderForce = new PVector(0, random(-0.01, -0.04));
        // this.leader.color = color(255, 0, 0);
     } else {
         this.leader = null;
@@ -529,16 +531,16 @@ for (var i=0; i<FISH_COUNT; i++) {
 }
 schoolTwo.nominateLeader();
 
-var schoolFour = new School();
-for (var i=0; i<FISH_COUNT; i++) {
-    schoolFour.addFish(new Fish(color(223, 230, 43)))
-}
-schoolFour.nominateLeader();
-
-
 var schoolThree = new School();
+for (var i=0; i<FISH_COUNT; i++) {
+    schoolThree.addFish(new Fish(color(223, 230, 43)))
+}
+schoolThree.nominateLeader();
+
+
+var koiSchool = new School();
 for (var i=0; i<GOLDFISH_COUNT; i++) {
-    schoolThree.addFish(new Goldfish());
+    koiSchool.addFish(new Goldfish());
 }
 
 var EcoSystem = function() {
@@ -592,13 +594,13 @@ var ecoSystem = new EcoSystem();
 ecoSystem.addSchool(schoolOne);
 ecoSystem.addSchool(schoolTwo);
 ecoSystem.addSchool(schoolThree);
-ecoSystem.addSchool(schoolFour);
+ecoSystem.addSchool(koiSchool);
 
 //ecoSystem.populate(FISH_COUNT, GOLDFISH_COUNT);
 
 var draw = function() {
     background(177, 225, 230);
-    //deep.draw();
+   // deep.draw();
     ecoSystem.run();
 };
 
