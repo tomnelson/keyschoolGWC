@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fish Pond</title>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/processing.js/1.4.8/processing.min.js"></script>
+</head>
+<body>
+  <h3>Use the arrow keys to direct the Fish</h3>
+  <canvas id="canvas"></canvas>
+  <script>
+    var canvas = document.getElementById("canvas");
+    var processing = new Processing(canvas, function(processing) {
+        processing.size(600, 600);
+        processing.background(0xFFF);
+        var mouseIsPressed = false;
+        processing.mousePressed = function () { mouseIsPressed = true; };
+        processing.mouseReleased = function () { mouseIsPressed = false; };
+        var keyIsPressed = false;
+        processing.keyPressed = function () { keyIsPressed = true; };
+        processing.keyReleased = function () { keyIsPressed = false; };
+        function getImage(s) {
+            var url = "https://www.kasandbox.org/programming-images/" + s + ".png";
+            processing.externals.sketch.imageCache.add(url);
+            return processing.loadImage(url);
+        }
+        var rotate = processing.rotate;
+        with (processing) {
+/*
+Written by Emma Hamel 
+    */
+
+// The little fish follow the mouse
+var Littlefish = function() {
+  this.position = new PVector(random(width), random(height));
+  this.velocity = new PVector(0, 0);
+  this.acceleration = new PVector(0, 0);
+};
+
+//The big fish swim by
+var Bigfish = function(){
+    this.position = new PVector(random(width), random(height));
+    this.velocity = new PVector(0, 1);
+};
+
+var Waves = function(y){
+    this.y = y;
+    this.velocity = new PVector(2,1);
+    this.waveheight = 0;
+    this.inc = 1;
+};
+
+Littlefish.prototype.update = function() {
+    //establishes target, the mouse
+    var mouse = new PVector(mouseX, mouseY);
+    var dir = PVector.sub(mouse, this.position);
+    dir.normalize();
+    dir.mult(0.2);
+    //Move!
+    this.acceleration = dir;
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(5);
+    this.position.add(this.velocity);
+};
+
+Littlefish.prototype.display = function() {
+  stroke(0);
+  fill(95, 201, 134);
+  line(this.position.x, this.position.y, this.position.x , this.position.y +15);
+  ellipse(this.position.x, this.position.y, 7, 15);
+};
+
+Littlefish.prototype.checkEdges = function() {
+
+  if (this.position.x > width) {
+    this.position.x = 0;
+  } 
+  else if (this.position.x < 0) {
+    this.position.x = width;
+  }
+
+  if (this.position.y > height) {
+    this.position.y = 0;
+  } 
+  else if (this.position.y < 0) {
+    this.position.y = height;
+  }
+};
+
+Bigfish.prototype.draw = function() {
+    fill(209, 0, 0);
+    bezier(this.position.x + 52, this.position.y + 0, this.position.x-123, this.position.y +222, this.position.x + 155, this.position.y + 222, this.position.x, this.position.y);
+};
+
+Bigfish.prototype.update = function() {
+    var move = new PVector(0.2, 0);
+    //calculates the speed and direction at which the big fish move
+    var dir = PVector.sub(move, 0);
+    dir.normalize();
+    dir.mult(0.3);
+    //Moving!
+    this.acceleration = dir;
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(5);
+    this.position.add(this.velocity);
+    //allows for the bezier to be translated withour actually changing shape
+    pushMatrix();
+    this.draw();
+    popMatrix();
+    
+    //once it goes off the screen, it comes right back on as if it was a stream of fish
+    if (this.position.y >= height) {
+        this.position.y = -400;
+    }
+};
+
+Waves.prototype.draw = function() {
+    noStroke();
+    fill(101, 180, 245);
+    arc(100, this.y, 200, this.waveheight, 0, 180);
+    arc(300, this.y, 200, -this.waveheight, 0, 180);
+};
+
+Waves.prototype.update = function() {
+    //makes the waves flow
+    this.waveheight = this.waveheight + this.inc;
+    if (this.waveheight === 60) {
+        this.inc = -this.inc;
+    } 
+    if (this.waveheight === -60){
+        this.inc = -this.inc;
+    }
+};
+
+var Littlearr = [];
+var Bigarr = [];
+
+for (var i = 0; i < 20; i++) {
+    Littlearr[i] = new Littlefish(); 
+}
+
+for (var i = 0; i < 2; i++) {
+    Bigarr[i] = new Bigfish(); 
+}
+
+var wave1 = new Waves(45);
+var wave2 = new Waves(145);
+var wave3 = new Waves(245);
+var wave4 = new Waves(345);
+
+draw = function() {
+    background(240, 245, 255);
+    wave1.update();
+    wave1.draw();
+    wave2.update();
+    wave2.draw();
+    wave3.update();
+    wave3.draw();
+    wave4.update();
+    wave4.draw();
+    for (var i = 0; i < Bigarr.length; i++) {
+        Bigarr[i].update();
+        Bigarr[i].draw(); 
+    }
+    for (var i = 0; i < Littlearr.length; i++) {
+        Littlearr[i].update();
+        Littlearr[i].display(); 
+    }
+};
+
+        }
+        if (typeof draw !== 'undefined') processing.draw = draw;
+    });
+  </script>
+</body>
+</html>
