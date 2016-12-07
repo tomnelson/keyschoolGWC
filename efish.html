@@ -28,7 +28,7 @@
 /*
 Written by Emma Hamel 
     */
-angleMode = "degrees";
+
 // The little fish follow the mouse
 var Littlefish = function() {
   this.position = new PVector(random(width), random(height));
@@ -116,8 +116,8 @@ Bigfish.prototype.update = function() {
 Waves.prototype.draw = function() {
     noStroke();
     fill(101, 180, 245);
-    arc(100, this.y, 200, this.waveheight, 0, 180);
-    arc(300, this.y, 200, -this.waveheight, 0, 180);
+    arc(100, this.y, 200, this.waveheight, 0, PI/2);
+    arc(300, this.y, 200, -this.waveheight, 0, PI/2);
 };
 
 Waves.prototype.update = function() {
