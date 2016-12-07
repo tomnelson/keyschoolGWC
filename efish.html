@@ -116,8 +116,8 @@ Bigfish.prototype.update = function() {
 Waves.prototype.draw = function() {
     noStroke();
     fill(101, 180, 245);
-    arc(100, this.y, 200, this.waveheight, 0, PI/2);
-    arc(300, this.y, 200, -this.waveheight, 0, PI/2);
+    arc(100, this.y, 300, this.waveheight, 0, PI);
+    arc(300, this.y, 300, -this.waveheight, 0, PI);
 };
 
 Waves.prototype.update = function() {
