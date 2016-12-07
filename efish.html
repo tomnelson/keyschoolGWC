@@ -146,6 +146,8 @@ var wave1 = new Waves(45);
 var wave2 = new Waves(145);
 var wave3 = new Waves(245);
 var wave4 = new Waves(345);
+var wave5 = new Waves(445);
+var wave6 = new Waves(545);
 
 draw = function() {
     background(240, 245, 255);
@@ -157,6 +159,10 @@ draw = function() {
     wave3.draw();
     wave4.update();
     wave4.draw();
+    wave5.update();
+    wave5.draw();
+    wave6.update();
+    wave6.draw();
     for (var i = 0; i < Bigarr.length; i++) {
         Bigarr[i].update();
         Bigarr[i].draw(); 
