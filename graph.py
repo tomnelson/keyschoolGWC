@@ -1,66 +1,112 @@
+# A non-directed graph. An edge between v1 and v2 can be used in both directions
 class Graph:
+
     def __init__(self):
-        # vertices is a dictionary that maps a vertex to a tuple of 2 sets: incoming and outgoing edges
-        self.vertices = {}
-        # edges is a dictionary that maps an edge to a tuple of 2 vertices that the edge connects
-        self.edges = {}
+
+        # a dictionary where vertex is the key and the value is a set of incident edges
+        self.vertices = {} # empty dictionary for now
+
+        # a dictionary where the edge is the key and the value is a tuple of
+        # two vertices
+        self.edges = {} # empty dictionary for now
 
     def addVertex(self,v):
-        if v not in self.vertices:
-          # put v in the dictionary with a value that is a tuple of 2 empty sets (for in and out edges)
-          self.vertices[v] = (set([]),set([]))          
+        if v not in self.vertices.keys():
+            # put v in as the key, the value is an empty set
+            self.vertices[v] = set([])
 
     def addEdge(self, edge, v1, v2):
-        if edge not in self.edges:
-          self.edges[edge] = (v1, v2) # put v1 and v2 into a tuple and make it the value for edge in the dictionary
-          if v1 not in self.vertices.keys():
-              self.addVertex(v1)
-          if v2 not in self.vertices.keys():
-              self.addVertex(v2)
-          # this is an undirected graph so every edge is both incoming and outgoing
-          self.vertices[v1][0].add(edge) # add edge to incoming set for v1
-          self.vertices[v1][1].add(edge) # add edge to outgoing set for v1
-          self.vertices[v2][0].add(edge) # add edge to incoming set for v2
-          self.vertices[v2][1].add(edge) # add edge to outgoing set got v2
+        if edge not in self.edges.keys():
+            # put edge in as the key. the value is the pair (a tuple) of vertices
+            self.edges[edge] = (v1, v2)
+            self.addVertex(v1)
+            self.addVertex(v2)
+            self.getIncidentEdges(v1).add(edge)
+            self.getIncidentEdges(v2).add(edge)
 
     def getEdges(self):
-        # the keys in the edges dictionary contain all edges for this graph
+        # return the keys of the edges dictionary
         return self.edges.keys()
 
     def getVertices(self):
-        # the keys for the vertices dictionary contain all vertices for this graph
+        # return the keys of the vertices dictionary
         return self.vertices.keys()
 
-    # the incoming edges for v are the first [0] set in its value tuple (incomingset,outgoingset)
     def getIncomingEdges(self, v):
-        return self.vertices[v][0]
+        # the incoming edges are just the incident edges
+        return self.getIncidentEdges(v)
 
-    # the outgoind edges for v are the second [1] set in its value tuple (incomingset,outgoingset)
     def getOutgoingEdges(self, v):
-        return self.vertices[v][1]
+        # the outgoing edges are just the incident edges
+        return self.getIncidentEdges(v)
+
+    def getIncidentEdges(self, v):
+        # self.vertices[v] value is a Set of incident edges
+        return self.vertices[v]
+
+    # for a vertex v, find all vertices that are connected to v with one edge
+    def getAdjacentVertices(self, v):
+        adj = set([])
+        for edge in self.getIncidentEdges(v):
+            for ep in self.getEndpoints(edge):
+                if v != ep: # don't add v
+                    adj.add(ep)
+        return adj
+
+    def getEndpoints(self, edge):
+        # returns a tuple of the 2 vertex endpoints for the given edge  (v1,v2)
+        return self.edges[edge]
 
     def __str__(self):
-        return "v:"+str(self.vertices)+" "+"e:"+str(self.edges)
+        return "vertices:"+str(self.vertices)+"\n"+"edges:"+str(self.edges)
 
+# a directed graph. Edges have one direction from v1 to v2
 class DiGraph(Graph):
     def __init__(self):
         Graph.__init__(self)
 
-    # because this is a directed graph, an edge from v1 to v2 is outgoing only for v1 and incoming only for v2
+    def addVertex(self,v):
+        if v not in self.vertices.keys():
+            # put v in as the key, the value is a tuple of 2 empty sets
+            # first is for incoming edges, second is for outgoing edges
+            self.vertices[v] = (set([]),set([]))
+
+    def getIncomingEdges(self, v):
+        # self.vertices[v] value is a tuple of 2 Sets.
+        # the first set [0] is the incoming edges
+        return self.vertices[v][0]
+
+    def getOutgoingEdges(self, v):
+        # self.vertices[v] value is a tuple of 2 Sets.
+        # the second set [1] is the outgoing edges
+        return self.vertices[v][1]
+
+    def getIncidentEdges(self, v):
+        # the union of the incoming and outgoing edges
+        return self.getIncomingEdges(v) | self.getOutgoingEdges(v)
+            #self.getIncomingEdges(v).union(self.getOutgoingEdges(v))
+
     def addEdge(self, edge, v1, v2):
-        self.edges[edge] = (v1, v2) # put v1 and v2 into a tuple and make it the value for edge in the dictionary
-        if v1 not in self.vertices.keys():
-            self.addVertex(v1)
-        if v2 not in self.vertices.keys():
-            self.addVertex(v2)
-        self.vertices[v1][1].add(edge) # edge is outgoing for v1
-        self.vertices[v2][0].add(edge) # edge is incoming for v2
+        self.edges[edge] = (v1, v2)  # put v1 and v2 into a tuple and make it the value for edge in the dictionary
+        self.addVertex(v1)
+        self.addVertex(v2)
+        self.getOutgoingEdges(v1).add(edge)
+        self.getIncomingEdges(v2).add(edge)
+
+    def getAdjacentVertices(self, v):
+        adj = set([])
+        # for directed graph, only use outgoing edges
+        for edge in self.getOutgoingEdges(v):
+            for ep in self.getEndpoints(edge):
+                if v != ep:
+                    adj.add(ep)
+        return adj
 
 
 g = DiGraph()
 
-g.addEdge("a", 1, 2)
-g.addEdge("b", 2, 3)
+g.addEdge("a", 1, 2) # add an edge named 'a' that connects vertex 1 and 2
+g.addEdge("b", 2, 3) # add an edge named 'b' that connects vertex 2 and 3
 g.addEdge("c", 1, 3)
 g.addEdge("d", 3, 1)
 
@@ -72,3 +118,31 @@ print "edges:"+str(g.getEdges())
 
 print 'outgoing for 1:'+str(g.getOutgoingEdges(1))
 print 'incoming for 1:'+str(g.getIncomingEdges(1))
+print 'incident for 1:'+str(g.getIncidentEdges(1))
+
+print 'adjacent to 1:'+str(g.getAdjacentVertices(1))
+print 'adjacent to 2:'+str(g.getAdjacentVertices(2))
+print 'adjacent to 3:'+str(g.getAdjacentVertices(3))
+
+g = Graph()
+
+g.addEdge("a", 1, 2) # add an edge named 'a' that connects vertex 1 and 2
+g.addEdge("b", 2, 3) # add an edge named 'b' that connects vertex 2 and 3
+g.addEdge("c", 1, 3)
+g.addEdge("d", 3, 1)
+
+print str(g)
+
+print "vertices:"+str(g.getVertices())
+
+print "edges:"+str(g.getEdges())
+
+print 'outgoing for 1:'+str(g.getOutgoingEdges(1))
+print 'incoming for 1:'+str(g.getIncomingEdges(1))
+print 'incident for 1:'+str(g.getIncidentEdges(1))
+
+
+print 'adjacent to 1:'+str(g.getAdjacentVertices(1))
+print 'adjacent to 2:'+str(g.getAdjacentVertices(2))
+print 'adjacent to 3:'+str(g.getAdjacentVertices(3))
+
